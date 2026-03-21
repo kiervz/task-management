@@ -1,8 +1,20 @@
 <?php
 
+use App\Helpers\ApiResponse;
+use App\Http\Middleware\InjectSanctumToken;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Response;
+use Illuminate\Validation\UnauthorizedException;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,5 +27,52 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+
+        $exceptions->render(function (ThrottleRequestsException $e) {
+            $retryAfter = $e->getHeaders()['Retry-After'] ?? 60;
+            return ApiResponse::error(
+                "Too many attempts. Please try again in {$retryAfter} seconds.",
+                null,
+                Response::HTTP_TOO_MANY_REQUESTS
+            );
+        });
+
+        $exceptions->render(function (ValidationException $e) {
+            return ApiResponse::error(
+                'Validation failed.',
+                $e->errors(),
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        });
+
+        $exceptions->render(function (ModelNotFoundException $e) {
+            $model = class_basename($e->getModel());
+            return ApiResponse::error("{$model} not found.", null, Response::HTTP_NOT_FOUND);
+        });
+
+        $exceptions->render(function (NotFoundHttpException $e) {
+            return ApiResponse::error('Resource not found.', null, Response::HTTP_NOT_FOUND);
+        });
+
+        $exceptions->render(function (AuthenticationException $e) {
+            return ApiResponse::error('Unauthenticated.', null, Response::HTTP_UNAUTHORIZED);
+        });
+
+        $exceptions->render(function (UnauthorizedException $e) {
+            return ApiResponse::error($e->getMessage(), null, Response::HTTP_UNAUTHORIZED);
+        });
+
+        $exceptions->render(function (AuthorizationException $e) {
+            return ApiResponse::error('Forbidden.', null, Response::HTTP_FORBIDDEN);
+        });
+
+        $exceptions->render(function (AccessDeniedHttpException $e) {
+            return ApiResponse::error($e->getMessage(), null, Response::HTTP_FORBIDDEN);
+        });
+
+        // Catch-all for remaining HTTP exceptions — must be last
+        $exceptions->render(function (HttpException $e) {
+            return ApiResponse::error($e->getMessage(), null, $e->getStatusCode());
+        });
+
     })->create();

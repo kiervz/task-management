@@ -47,7 +47,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_EXPIRATION', null),
 
     /*
     |--------------------------------------------------------------------------
@@ -81,4 +81,7 @@ return [
         'validate_csrf_token' => Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
     ],
 
+    'access_token_ttl'  => (int) env('SANCTUM_ACCESS_TOKEN_TTL_MINUTES', 15),
+
+    'refresh_token_ttl' => (int) env('SANCTUM_REFRESH_TOKEN_TTL_DAYS', 30),
 ];
