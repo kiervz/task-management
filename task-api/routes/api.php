@@ -4,7 +4,7 @@ use App\Http\Controllers\API\V1\AuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::prefix('auth')->group(function () {
+    Route::prefix('auth')->middleware('client.type')->group(function () {
 
         Route::middleware('throttle:5,1')->group(function () {
             Route::post('login', [AuthController::class, 'login']);
