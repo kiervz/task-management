@@ -94,26 +94,18 @@ class AuthService
 
     public function verifyRegisterOtp(array $data): array
     {
-        return DB::transaction(function () use ($data) {
-            $user = User::where('email', $data['email'])->first();
-
-            if (!$user) {
-                throw new NotFoundHttpException(self::USER_NOT_FOUND);
-            }
-
+        $user = DB::transaction(function () use ($data) {
+            $user = User::where('email', $data['email'])->firstOrFail();
             $this->userOtpService->validateOtp($user, $data['otp_code'], OtpType::REGISTER);
-
             $user->update(['email_verified_at' => Carbon::now()]);
-
-            $accessToken  = $this->createAccessToken($user);
-            $refreshToken = $this->createRefreshToken($user);
-
-            return [
-                'user'          => $user,
-                'access_token'  => $accessToken,
-                'refresh_token' => $refreshToken,
-            ];
+            return $user;
         });
+
+        return [
+            'user'          => $user,
+            'access_token'  => $this->createAccessToken($user),
+            'refresh_token' => $this->createRefreshToken($user),
+        ];
     }
 
     public function resendOtp(string $email, OtpType $type): void
