@@ -13,6 +13,7 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Response;
 use Illuminate\Validation\UnauthorizedException;
 use Illuminate\Validation\ValidationException;
+use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -76,6 +77,14 @@ return Application::configure(basePath: dirname(__DIR__))
         // Catch-all for remaining HTTP exceptions — must be last
         $exceptions->render(function (HttpException $e) {
             return ApiResponse::error($e->getMessage(), null, $e->getStatusCode());
+        });
+
+        $exceptions->render(function (InvalidStateException $e) {
+            return ApiResponse::error(
+                'OAuth state invalid. Please try again.',
+                null,
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
         });
 
     })->create();

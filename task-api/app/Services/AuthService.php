@@ -13,6 +13,9 @@ use Illuminate\Validation\UnauthorizedException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Carbon\Carbon;
+use App\Enums\Provider;
+use App\Models\UserAccount;
+use Laravel\Socialite\Contracts\User as SocialiteUser;
 
 class AuthService
 {
@@ -214,4 +217,40 @@ class AuthService
             ->whereNull('revoked_at')
             ->update(['revoked_at' => Carbon::now()]);
     }
+
+    public function loginWithOAuth(string $provider, SocialiteUser $socialiteUser): array
+    {
+        $account = UserAccount::where('provider', $provider)
+            ->where('provider_id', $socialiteUser->getId())
+            ->first();
+
+        $user = DB::transaction(function () use ($account, $provider, $socialiteUser) {
+            if ($account) {
+                return $account->user;
+            }
+
+            $user = User::firstOrCreate(
+                ['email' => $socialiteUser->getEmail()],
+                [
+                    'name'              => $socialiteUser->getName(),
+                    'email_verified_at' => Carbon::now(),
+                    'password'          => null,
+                ]
+            );
+
+            $user->userAccounts()->create([
+                'provider'    => $provider,
+                'provider_id' => $socialiteUser->getId(),
+            ]);
+
+            return $user;
+        });
+
+        return [
+            'user'          => $user,
+            'access_token'  => $this->createAccessToken($user),
+            'refresh_token' => $this->createRefreshToken($user),
+        ];
+    }
+
 }

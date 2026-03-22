@@ -53,4 +53,14 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function userAccounts()
+    {
+        return $this->hasMany(UserAccount::class);
+    }
+
+    public function hasProvider(string $provider): bool
+    {
+        return $this->userAccounts()->where('provider', $provider)->exists();
+    }
 }
