@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\OAuthController;
+use App\Http\Controllers\API\V1\ProjectController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -35,5 +36,12 @@ Route::prefix('v1')->group(function () {
             Route::post('logout-all', [AuthController::class, 'logoutAll']);
         });
 
+    });
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('projects/{projectCode}/members', [ProjectController::class, 'members']);
+        Route::post('projects/{projectCode}/invites', [ProjectController::class, 'inviteMember']);
+        Route::post('projects/invites/confirm', [ProjectController::class, 'confirmInvite']);
+        Route::apiResource('projects', ProjectController::class);
     });
 });
