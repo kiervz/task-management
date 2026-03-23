@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('personal_access_tokens', function (Blueprint $table) {
+        Schema::create('user_accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuidMorphs('tokenable');
-            $table->text('name');
-            $table->string('token', 64)->unique();
-            $table->text('abilities')->nullable();
-            $table->timestamp('last_used_at')->nullable();
-            $table->timestamp('expires_at')->nullable()->index();
+            $table->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
+            $table->string('provider');
+            $table->string('provider_id');
             $table->timestamps();
+
+            $table->unique(['user_id', 'provider']);
+            $table->unique(['provider', 'provider_id']);
         });
     }
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('personal_access_tokens');
+        Schema::dropIfExists('user_accounts');
     }
 };
