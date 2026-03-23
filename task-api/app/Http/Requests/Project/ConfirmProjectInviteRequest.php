@@ -17,7 +17,7 @@ class ConfirmProjectInviteRequest extends FormRequest
     {
         $this->merge([
             'action' => strtolower((string) $this->query('action')),
-            'id' => (string) $this->query('id'),
+            'code' => (string) $this->query('code'),
         ]);
     }
 
@@ -27,7 +27,7 @@ class ConfirmProjectInviteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'string', 'exists:projects,code'],
+            'code' => ['required', 'string', 'exists:projects,code'],
             'action' => ['required', Rule::in(['accept', 'reject'])],
         ];
     }

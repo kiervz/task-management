@@ -84,7 +84,7 @@ class ProjectController extends Controller
         );
     }
 
-    public function destroy(Request $request, string $projectCode): JsonResponse
+    public function destroy(Request $request, string $projectCode): Response
     {
         $project = $this->projectService->findProject($projectCode);
 
@@ -92,11 +92,7 @@ class ProjectController extends Controller
 
         $this->projectService->deleteProject($projectCode);
 
-        return $this->apiResponse(
-            'Project deleted successfully.',
-            null,
-            Response::HTTP_NO_CONTENT
-        );
+        return response()->noContent();
     }
 
     public function members(Request $request, string $projectCode): JsonResponse
@@ -138,7 +134,7 @@ class ProjectController extends Controller
         $action = (string) $request->validated('action');
 
         $invite = $this->projectService->confirmInvite(
-            $request->validated('id'),
+            $request->validated('code'),
             $request->user(),
             $action
         );

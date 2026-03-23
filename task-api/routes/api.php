@@ -41,7 +41,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('projects/{projectCode}/members', [ProjectController::class, 'members']);
         Route::post('projects/{projectCode}/invites', [ProjectController::class, 'inviteMember']);
-        Route::get('projects/invites/confirm', [ProjectController::class, 'confirmInvite']);
+        Route::post('projects/invites/confirm', [ProjectController::class, 'confirmInvite']);
         Route::apiResource('projects', ProjectController::class);
     });
 });

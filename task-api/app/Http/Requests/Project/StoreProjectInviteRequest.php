@@ -20,7 +20,7 @@ class StoreProjectInviteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'member_email' => ['required', 'string', 'max:255', 'exists:users,email'],
+            'member_email' => ['required', 'string', 'email', 'max:255', 'exists:users,email'],
             'role' => ['required', Rule::in([ProjectMember::ROLE_ADMIN, ProjectMember::ROLE_MEMBER])],
         ];
     }

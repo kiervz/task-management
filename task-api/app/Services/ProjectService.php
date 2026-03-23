@@ -32,7 +32,7 @@ class ProjectService
             ->first();
 
         if (!$project) {
-            throw new NotFoundHttpException('Project not found or access denied.');
+            throw new NotFoundHttpException('Project not found.');
         }
 
         return $project;
@@ -95,7 +95,7 @@ class ProjectService
     {
         $project = $this->findProject($projectCode);
 
-        if ($inviter->email === $data['member_email']) {
+        if (strtolower($inviter->email) === strtolower($data['member_email'])) {
             throw ValidationException::withMessages([
                 'member_email' => ['You cannot invite yourself to this project.'],
             ]);
