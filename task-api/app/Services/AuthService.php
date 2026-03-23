@@ -13,7 +13,6 @@ use Illuminate\Validation\UnauthorizedException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Carbon\Carbon;
-use App\Enums\Provider;
 use App\Models\UserAccount;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 
@@ -135,10 +134,7 @@ class AuthService
     public function verifyForgotPasswordOtp(array $data): void
     {
         $user = User::where('email', $data['email'])->first();
-
-        if (!$user) {
-            throw new NotFoundHttpException(self::USER_NOT_FOUND);
-        }
+        if (!$user) return;
 
         $this->userOtpService->validateOtp($user, $data['otp_code'], OtpType::FORGOT_PASSWORD, false);
     }

@@ -25,7 +25,7 @@ class ValidateClientType
             return $next($request);
         }
 
-        if (!in_array($clientType, self::ALLOWED)) {
+        if (!in_array(strtolower($clientType), self::ALLOWED)) {
             return ApiResponse::error(
                 'Invalid X-Client-Type header. Allowed values: ' . implode(', ', self::ALLOWED) . '.',
                 null,

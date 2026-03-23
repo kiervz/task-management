@@ -8,6 +8,7 @@ use App\Http\Resources\User\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class OAuthController extends Controller
@@ -18,14 +19,12 @@ class OAuthController extends Controller
     {
         $this->validateProvider($provider);
 
-        return response()->json([
-            'code'     => 200,
-            'success'  => true,
-            'message'  => 'Redirect URL generated.',
-            'response' => [
+        return $this->apiResponse(
+            'Redirect URL generated.',
+            [
                 'url' => Socialite::driver($provider)->stateless()->redirect()->getTargetUrl()
             ]
-        ]);
+        );
     }
 
     public function callback(Request $request, string $provider)
@@ -34,12 +33,16 @@ class OAuthController extends Controller
 
         try {
             $socialiteUser = Socialite::driver($provider)->stateless()->user();
+        } catch (InvalidStateException $e) {
+            throw $e;
         } catch (\Exception $e) {
             throw new UnprocessableEntityHttpException('Failed to retrieve user from ' . $provider . '.');
         }
 
         if (!$socialiteUser->getEmail()) {
-            throw new UnprocessableEntityHttpException('No email address returned from ' . $provider . '. Please ensure your ' . $provider . ' account has a public email.');
+            throw new UnprocessableEntityHttpException(
+                'No email address returned from ' . $provider . '. Please ensure your ' . $provider . ' account has a public email.'
+            );
         }
 
         $result = $this->authService->loginWithOAuth($provider, $socialiteUser);
@@ -54,7 +57,7 @@ class OAuthController extends Controller
 
     private function validateProvider(string $provider): void
     {
-        if (!in_array($provider, array_column(Provider::cases(), 'value'))) {
+        if (!in_array(strtolower($provider), array_map('strtolower', array_column(Provider::cases(), 'value')))) {
             throw new UnprocessableEntityHttpException(
                 'Unsupported provider. Allowed: ' . implode(', ', array_column(Provider::cases(), 'value')) . '.'
             );

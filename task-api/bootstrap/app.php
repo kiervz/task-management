@@ -1,7 +1,6 @@
 <?php
 
 use App\Helpers\ApiResponse;
-use App\Http\Middleware\InjectSanctumToken;
 use App\Http\Middleware\ValidateClientType;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -74,11 +73,6 @@ return Application::configure(basePath: dirname(__DIR__))
             return ApiResponse::error($e->getMessage(), null, Response::HTTP_FORBIDDEN);
         });
 
-        // Catch-all for remaining HTTP exceptions — must be last
-        $exceptions->render(function (HttpException $e) {
-            return ApiResponse::error($e->getMessage(), null, $e->getStatusCode());
-        });
-
         $exceptions->render(function (InvalidStateException $e) {
             return ApiResponse::error(
                 'OAuth state invalid. Please try again.',
@@ -87,4 +81,8 @@ return Application::configure(basePath: dirname(__DIR__))
             );
         });
 
+        // Catch-all for remaining HTTP exceptions — must be last
+        $exceptions->render(function (HttpException $e) {
+            return ApiResponse::error($e->getMessage(), null, $e->getStatusCode());
+        });
     })->create();
