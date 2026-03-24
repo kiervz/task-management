@@ -43,4 +43,24 @@ class Project extends Model
     {
         return $this->hasMany(ProjectInvite::class);
     }
+
+    public function taskTypes(): HasMany
+    {
+        return $this->hasMany(TaskType::class);
+    }
+
+    public function taskStatuses(): HasMany
+    {
+        return $this->hasMany(TaskStatus::class);
+    }
+
+    public function taskPriorities(): HasMany
+    {
+        return $this->hasMany(TaskPriority::class);
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
 }

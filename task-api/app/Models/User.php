@@ -65,6 +65,16 @@ class User extends Authenticatable
         return $this->hasMany(Project::class);
     }
 
+    public function createdTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
+
+    public function taskAssignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignee::class);
+    }
+
     public function hasProvider(string $provider): bool
     {
         return $this->userAccounts()->where('provider', $provider)->exists();
