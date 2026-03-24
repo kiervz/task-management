@@ -81,8 +81,8 @@ class TaskCatalogService
             $data['code'] = $this->generateUniqueProjectSlug(TaskType::class, $project, $data['name'], $taskType->id);
         }
 
-        if (array_key_exists('color', $data) && $this->isEmptyColor($data['color'])) {
-            $data['color'] = self::DEFAULT_TASK_TYPE_COLOR;
+        if (array_key_exists('color', $data)) {
+            $data['color'] = $this->resolveColor($data['color'], self::DEFAULT_TASK_TYPE_COLOR);
         }
 
         DB::transaction(function () use ($project, $taskType, $data) {
@@ -167,8 +167,8 @@ class TaskCatalogService
             $data['code'] = $this->generateUniqueProjectSlug(TaskStatus::class, $project, $data['name'], $taskStatus->id);
         }
 
-        if (array_key_exists('color', $data) && $this->isEmptyColor($data['color'])) {
-            $data['color'] = self::DEFAULT_TASK_STATUS_COLOR;
+        if (array_key_exists('color', $data)) {
+            $data['color'] = $this->resolveColor($data['color'], self::DEFAULT_TASK_STATUS_COLOR);
         }
 
         DB::transaction(function () use ($project, $taskStatus, $data) {
@@ -252,8 +252,8 @@ class TaskCatalogService
             $data['code'] = $this->generateUniqueProjectSlug(TaskPriority::class, $project, $data['name'], $taskPriority->id);
         }
 
-        if (array_key_exists('color', $data) && $this->isEmptyColor($data['color'])) {
-            $data['color'] = self::DEFAULT_TASK_PRIORITY_COLOR;
+        if (array_key_exists('color', $data)) {
+            $data['color'] = $this->resolveColor($data['color'], self::DEFAULT_TASK_PRIORITY_COLOR);
         }
 
         DB::transaction(function () use ($project, $taskPriority, $data) {
