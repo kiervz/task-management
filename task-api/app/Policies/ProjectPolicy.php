@@ -33,6 +33,11 @@ class ProjectPolicy
         return $this->isProjectAdmin($user, $project);
     }
 
+    public function transferOwnership(User $user, Project $project): bool
+    {
+        return $project->user_id === $user->id;
+    }
+
     private function isProjectAdmin(User $user, Project $project): bool
     {
         if ($project->user_id === $user->id) {

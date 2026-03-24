@@ -7,6 +7,7 @@ use App\Http\Requests\Project\ConfirmProjectInviteRequest;
 use App\Http\Resources\Project\ProjectMemberResource;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\StoreProjectInviteRequest;
+use App\Http\Requests\Project\TransferProjectOwnershipRequest;
 use App\Http\Resources\Project\ProjectInviteResource;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Resources\Project\ProjectResource;
@@ -98,11 +99,12 @@ class ProjectController extends Controller
     public function members(Request $request, string $projectCode): JsonResponse
     {
         $perPage = min((int) $request->integer('per_page', 10), 50);
+        $filters = $request->only(['role']);
         $project = $this->projectService->findProject($projectCode);
 
         $this->authorize('view', $project);
 
-        $members = $this->projectService->getProjectMembers($projectCode, $perPage);
+        $members = $this->projectService->getProjectMembers($projectCode, $perPage, $filters);
 
         return $this->apiResponse(
             'Project members retrieved successfully.',
@@ -119,6 +121,23 @@ class ProjectController extends Controller
         $this->projectService->removeMember($project, $userId);
 
         return response()->noContent();
+    }
+
+    public function transferOwnership(TransferProjectOwnershipRequest $request, string $projectCode): JsonResponse
+    {
+        $project = $this->projectService->findProject($projectCode);
+
+        $this->authorize('transferOwnership', $project);
+
+        $project = $this->projectService->transferOwnership(
+            $project,
+            $request->validated('user_id')
+        );
+
+        return $this->apiResponse(
+            'Project ownership transferred successfully.',
+            new ProjectResource($project)
+        );
     }
 
     public function inviteMember(StoreProjectInviteRequest $request, string $projectCode): JsonResponse

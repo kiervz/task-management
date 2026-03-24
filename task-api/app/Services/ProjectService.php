@@ -70,12 +70,17 @@ class ProjectService
         $project->delete();
     }
 
-    public function getProjectMembers(string $projectCode, int $perPage)
+    public function getProjectMembers(string $projectCode, int $perPage, array $filters = [])
     {
         $project = $this->findProject($projectCode);
 
+        $role = $filters['role'] ?? null;
+        $allowedRoles = [ProjectMember::ROLE_ADMIN, ProjectMember::ROLE_MEMBER];
+        $role = in_array($role, $allowedRoles, true) ? $role : null;
+
         return $project->members()
             ->with('user')
+            ->when($role !== null, fn ($q) => $q->where('role', $role))
             ->orderByRaw("CASE WHEN role = 'admin' THEN 0 ELSE 1 END")
             ->orderBy('created_at')
             ->paginate($perPage);
@@ -119,6 +124,35 @@ class ProjectService
         }
 
         $member->delete();
+    }
+
+    public function transferOwnership(Project $project, string $newOwnerId): Project
+    {
+        if ($project->user_id === $newOwnerId) {
+            throw ValidationException::withMessages([
+                'user_id' => ['Selected user is already the project owner.'],
+            ]);
+        }
+
+        $member = $project->members()
+            ->where('user_id', $newOwnerId)
+            ->first();
+
+        if (!$member) {
+            throw ValidationException::withMessages([
+                'user_id' => ['Selected user must be a member of this project.'],
+            ]);
+        }
+
+        if ($member->role !== ProjectMember::ROLE_ADMIN) {
+            throw ValidationException::withMessages([
+                'user_id' => ['Ownership can only be transferred to a project admin.'],
+            ]);
+        }
+
+        $project->update(['user_id' => $newOwnerId]);
+
+        return $project->fresh(['user', 'members']);
     }
 
     public function inviteMember(string $projectCode, User $inviter, array $data): ProjectInvite
