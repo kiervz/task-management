@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\V1\AuthController;
+use App\Http\Controllers\API\V1\CommentController;
 use App\Http\Controllers\API\V1\OAuthController;
 use App\Http\Controllers\API\V1\ProjectController;
 use App\Http\Controllers\API\V1\TaskCatalogController;
@@ -77,6 +78,11 @@ Route::prefix('v1')->group(function () {
         Route::get('tasks/{taskId}/assignees', [TaskController::class, 'assignees']);
         Route::post('tasks/{taskId}/assignees', [TaskController::class, 'assignAssignee']);
         Route::delete('tasks/{taskId}/assignees/{userId}', [TaskController::class, 'unassignAssignee']);
+
+        Route::get('tasks/{taskId}/comments', [CommentController::class, 'index']);
+        Route::post('tasks/{taskId}/comments', [CommentController::class, 'store']);
+        Route::put('comments/{commentId}', [CommentController::class, 'update']);
+        Route::delete('comments/{commentId}', [CommentController::class, 'destroy']);
 
         Route::apiResource('projects', ProjectController::class);
     });
