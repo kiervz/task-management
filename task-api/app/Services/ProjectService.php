@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\SendProjectInviteEmailJob;
 use App\Models\Project;
 use App\Models\ProjectInvite;
 use App\Models\ProjectMember;
@@ -125,6 +126,15 @@ class ProjectService
                     'responded_at' => null,
                     'expires_at' => now()->addDays(7),
                 ]
+            );
+
+            SendProjectInviteEmailJob::dispatch(
+                email: $invite->member_email,
+                projectName: $project->name,
+                projectCode: $project->code,
+                inviterName: $inviter->name,
+                role: $invite->role,
+                expiresAt: $invite->expires_at?->toDateTimeString(),
             );
 
             return $invite->load('project');
