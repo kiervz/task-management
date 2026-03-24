@@ -92,6 +92,35 @@ class ProjectService
             ->get();
     }
 
+    public function removeMember(Project $project, string $userId): void
+    {
+        if ($project->user_id === $userId) {
+            throw ValidationException::withMessages([
+                'user_id' => ['Project owner cannot be removed.'],
+            ]);
+        }
+
+        $member = $project->members()->where('user_id', $userId)->first();
+
+        if (!$member) {
+            throw new NotFoundHttpException('Project member not found.');
+        }
+
+        if ($member->role === ProjectMember::ROLE_ADMIN) {
+            $adminCount = (int) $project->members()
+                ->where('role', ProjectMember::ROLE_ADMIN)
+                ->count();
+
+            if ($adminCount <= 1) {
+                throw ValidationException::withMessages([
+                    'user_id' => ['Cannot remove the last project admin.'],
+                ]);
+            }
+        }
+
+        $member->delete();
+    }
+
     public function inviteMember(string $projectCode, User $inviter, array $data): ProjectInvite
     {
         $project = $this->findProject($projectCode);

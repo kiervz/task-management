@@ -16,11 +16,8 @@ class ProjectMemberResource extends JsonResource
         return [
             'id' => $this->id,
             'project_id' => $this->project_id,
-            'user_id' => $this->user_id,
             'role' => $this->role,
             'user' => new UserResource($this->whenLoaded('user')),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

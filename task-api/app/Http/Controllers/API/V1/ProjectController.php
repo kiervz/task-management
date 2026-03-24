@@ -110,6 +110,17 @@ class ProjectController extends Controller
         );
     }
 
+    public function removeMember(Request $request, string $projectCode, string $userId): Response
+    {
+        $project = $this->projectService->findProject($projectCode);
+
+        $this->authorize('update', $project);
+
+        $this->projectService->removeMember($project, $userId);
+
+        return response()->noContent();
+    }
+
     public function inviteMember(StoreProjectInviteRequest $request, string $projectCode): JsonResponse
     {
         $project = $this->projectService->findProject($projectCode);

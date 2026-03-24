@@ -42,6 +42,7 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('projects/{projectCode}/members', [ProjectController::class, 'members']);
+        Route::delete('projects/{projectCode}/members/{userId}', [ProjectController::class, 'removeMember']);
         Route::post('projects/{projectCode}/invites', [ProjectController::class, 'inviteMember']);
         Route::post('projects/invites/confirm', [ProjectController::class, 'confirmInvite']);
 
