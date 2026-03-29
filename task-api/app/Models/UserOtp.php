@@ -20,9 +20,11 @@ class UserOtp extends Model
         'expires_at',
         'resend_at',
         'used_at',
+        'deleted_at',
     ];
 
     protected $casts = [
+        'attempts' => 'integer',
         'expires_at' => 'datetime',
         'resend_at' => 'datetime',
         'used_at' => 'datetime',

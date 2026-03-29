@@ -6,6 +6,7 @@ use App\Enums\Provider;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\User\UserResource;
 use App\Services\AuthService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
@@ -19,12 +20,7 @@ class OAuthController extends Controller
     {
         $this->validateProvider($provider);
 
-        return $this->apiResponse(
-            'Redirect URL generated.',
-            [
-                'url' => Socialite::driver($provider)->stateless()->redirect()->getTargetUrl()
-            ]
-        );
+        return Socialite::driver($provider)->stateless()->redirect();
     }
 
     public function callback(Request $request, string $provider)
@@ -34,18 +30,34 @@ class OAuthController extends Controller
         try {
             $socialiteUser = Socialite::driver($provider)->stateless()->user();
         } catch (InvalidStateException $e) {
+            if (!$this->isMobile($request)) {
+                return $this->redirectToFrontendLogin($provider, 'invalid_state');
+            }
+
             throw $e;
         } catch (\Exception $e) {
+            if (!$this->isMobile($request)) {
+                return $this->redirectToFrontendLogin($provider, 'provider_user_fetch_failed');
+            }
+
             throw new UnprocessableEntityHttpException('Failed to retrieve user from ' . $provider . '.');
         }
 
         if (!$socialiteUser->getEmail()) {
+            if (!$this->isMobile($request)) {
+                return $this->redirectToFrontendLogin($provider, 'email_missing');
+            }
+
             throw new UnprocessableEntityHttpException(
                 'No email address returned from ' . $provider . '. Please ensure your ' . $provider . ' account has a public email.'
             );
         }
 
         $result = $this->authService->loginWithOAuth($provider, $socialiteUser);
+
+        if (!$this->isMobile($request)) {
+            return $this->redirectToFrontend($provider, $result['refresh_token']);
+        }
 
         return $this->tokenResponse(
             $result['access_token'],
@@ -87,7 +99,7 @@ class OAuthController extends Controller
         // Web: refresh token in HttpOnly cookie only
         return $this->apiResponse($message, $data)
             ->cookie(
-                'refreshToken',
+                'refresh_token',
                 $refreshToken,
                 $this->refreshTokenTtlMinutes(),
                 '/',
@@ -107,5 +119,39 @@ class OAuthController extends Controller
     private function isMobile(Request $request): bool
     {
         return strtolower($request->header('X-Client-Type', 'web')) === 'mobile';
+    }
+
+    private function redirectToFrontend(
+        string $provider,
+        string $refreshToken
+    ): RedirectResponse {
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
+        $query = http_build_query([
+            'provider' => $provider,
+        ]);
+
+        return redirect()->away("{$frontendUrl}/auth/callback?{$query}")
+            ->cookie(
+                'refresh_token',
+                $refreshToken,
+                $this->refreshTokenTtlMinutes(),
+                '/',
+                null,
+                app()->isProduction(),
+                true,
+                false,
+                app()->isProduction() ? 'Strict' : 'Lax'
+            );
+    }
+
+    private function redirectToFrontendLogin(string $provider, string $error): RedirectResponse
+    {
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
+        $query = http_build_query([
+            'provider' => $provider,
+            'oauth_error' => $error,
+        ]);
+
+        return redirect()->away("{$frontendUrl}/login?{$query}");
     }
 }

@@ -6,6 +6,17 @@ import PrivateLayout from './layouts/PrivateLayout';
 
 const Login = lazy(() => import('./pages/auth/login/Login'));
 const Register = lazy(() => import('./pages/auth/register/Register'));
+const Otp = lazy(() => import('./pages/auth/otp/Otp'));
+const ForgotPassword = lazy(
+  () => import('./pages/forgot-password/ForgotPassword'),
+);
+const VerifyPasswordOTP = lazy(
+  () => import('./pages/forgot-password/verify/VerifyPasswordOTP'),
+);
+const ResetPassword = lazy(
+  () => import('./pages/forgot-password/reset/ResetPassword'),
+);
+const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 
 function App() {
@@ -16,6 +27,14 @@ function App() {
           <Route element={<PublicLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/otp" element={<Otp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/forgot-password/verify"
+              element={<VerifyPasswordOTP />}
+            />
+            <Route path="/forgot-password/reset" element={<ResetPassword />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
           </Route>
           <Route element={<PrivateLayout />}>
             <Route path="/" element={<Dashboard />} />

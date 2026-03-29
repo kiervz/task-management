@@ -35,9 +35,12 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ValidationException $e) {
+            $errors = $e->errors();
+            $firstMessage = collect($errors)->flatten()->first();
+
             return ApiResponse::error(
-                'Validation failed.',
-                $e->errors(),
+                $firstMessage,
+                $errors,
                 Response::HTTP_UNPROCESSABLE_ENTITY
             );
         });

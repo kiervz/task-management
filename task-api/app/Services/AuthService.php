@@ -87,20 +87,21 @@ class AuthService
             $newRefreshToken = $this->createRefreshToken($user);
 
             return [
-                'accessToken'  => $newAccessToken,
-                'refreshToken' => $newRefreshToken,
-                'expiresIn'    => config('sanctum.access_token_ttl') * 60,
+                'access_token'  => $newAccessToken,
+                'refresh_token' => $newRefreshToken,
+                'expires_in'    => config('sanctum.access_token_ttl') * 60,
             ];
         });
     }
 
     public function verifyRegisterOtp(array $data): array
     {
-        $user = DB::transaction(function () use ($data) {
-            $user = User::where('email', $data['email'])->firstOrFail();
-            $this->userOtpService->validateOtp($user, $data['otp_code'], OtpType::REGISTER);
+        $user = User::where('email', $data['email'])->firstOrFail();
+
+        $this->userOtpService->validateOtp($user, $data['otp_code'], OtpType::REGISTER);
+
+        DB::transaction(function () use ($user) {
             $user->update(['email_verified_at' => Carbon::now()]);
-            return $user;
         });
 
         return [
@@ -113,42 +114,54 @@ class AuthService
     public function resendOtp(string $email, OtpType $type): void
     {
         $user = User::where('email', $email)->first();
-        if (!$user) return;
+        if (!$user) {
+            return;
+        }
+
         $this->userOtpService->resendOtp($user, $type);
     }
 
     public function sendForgotPasswordOtp(string $email): void
     {
         $user = User::where('email', $email)->first();
-        if (!$user) return;
+        if (!$user) {
+            return;
+        }
+
         $this->userOtpService->sendOtp($user, OtpType::FORGOT_PASSWORD);
     }
 
     public function resendForgotPasswordOtp(string $email): void
     {
         $user = User::where('email', $email)->first();
-        if (!$user) return;
+        if (!$user) {
+            return;
+        }
+
         $this->userOtpService->resendOtp($user, OtpType::FORGOT_PASSWORD);
     }
 
     public function verifyForgotPasswordOtp(array $data): void
     {
         $user = User::where('email', $data['email'])->first();
-        if (!$user) return;
+        if (!$user) {
+            return;
+        }
 
         $this->userOtpService->validateOtp($user, $data['otp_code'], OtpType::FORGOT_PASSWORD, false);
     }
 
     public function resetPassword(array $data): void
     {
-        DB::transaction(function () use ($data) {
-            $user = User::where('email', $data['email'])->first();
+        $user = User::where('email', $data['email'])->first();
 
-            if (!$user) {
-                throw new NotFoundHttpException(self::USER_NOT_FOUND);
-            }
+        if (!$user) {
+            throw new NotFoundHttpException(self::USER_NOT_FOUND);
+        }
 
-            $this->userOtpService->validateOtp($user, $data['otp_code'], OtpType::FORGOT_PASSWORD, true);
+        $this->userOtpService->validateOtp($user, $data['otp_code'], OtpType::FORGOT_PASSWORD, true);
+
+        DB::transaction(function () use ($user, $data) {
 
             $user->update(['password' => Hash::make($data['new_password'])]);
 

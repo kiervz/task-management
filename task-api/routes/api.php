@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::prefix('auth')->middleware('client.type')->group(function () {
 
-        Route::middleware('throttle:5,1')->group(function () {
+        Route::middleware('throttle:8,1')->group(function () {
             Route::post('login', [AuthController::class, 'login']);
             Route::post('register/verify', [AuthController::class, 'verifyRegisterOtp']);
             Route::post('forgot-password/verify', [AuthController::class, 'forgotPasswordVerify']);
@@ -24,7 +24,7 @@ Route::prefix('v1')->group(function () {
             Route::post('forgot-password/resend', [AuthController::class, 'forgotPasswordResend']);
         });
 
-        Route::middleware('throttle:5,1')->group(function () {
+        Route::middleware('throttle:8,1')->group(function () {
             Route::post('register', [AuthController::class, 'register']);
             Route::post('refresh-token', [AuthController::class, 'refresh']);
         });
