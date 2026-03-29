@@ -50,7 +50,7 @@ class AuthController extends Controller
         // Mobile sends refresh token in body, web sends via cookie
         $refreshToken = $this->isMobile($request)
             ? $request->input('refresh_token')
-            : $request->cookie('refreshToken');
+            : $request->cookie('refresh_token');
 
         if (!$refreshToken) {
             throw new UnauthorizedException('Refresh token not found.');
@@ -59,21 +59,21 @@ class AuthController extends Controller
         $result = $this->authService->refreshAccessToken($refreshToken);
 
         $data = [
-            'access_token' => $result['accessToken'],
-            'expires_in'   => $result['expiresIn'],
+            'access_token' => $result['access_token'],
+            'expires_in'   => $result['expires_in'],
         ];
 
         // Mobile: return new refresh token in body
         if ($this->isMobile($request)) {
-            $data['refresh_token'] = $result['refreshToken'];
+            $data['refresh_token'] = $result['refresh_token'];
             return $this->apiResponse('Token refreshed successfully.', $data);
         }
 
         // Web: set new refresh token in cookie
         return $this->apiResponse('Token refreshed successfully.', $data)
             ->cookie(
-                'refreshToken',
-                $result['refreshToken'],
+                'refresh_token',
+                $result['refresh_token'],
                 $this->refreshTokenTtlMinutes(),
                 '/',
                 null,
@@ -135,7 +135,9 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return $this->apiResponse('User data retrieved successfully.', new UserResource($request->user()));
+        return $this->apiResponse('User data retrieved successfully.', [
+            'user' => new UserResource($request->user())
+        ]);
     }
 
     public function sessions(Request $request)
@@ -150,7 +152,7 @@ class AuthController extends Controller
     {
         $refreshToken = $this->isMobile($request)
             ? $request->input('refresh_token')
-            : $request->cookie('refreshToken');
+            : $request->cookie('refresh_token');
 
         $this->authService->logout($request->user(), $refreshToken ?? '');
 
@@ -158,7 +160,7 @@ class AuthController extends Controller
 
         return $this->isMobile($request)
             ? $response
-            : $response->cookie('refreshToken', '', -1);
+            : $response->cookie('refresh_token', '', -1);
     }
 
     public function logoutAll(Request $request)
@@ -169,7 +171,7 @@ class AuthController extends Controller
 
         return $this->isMobile($request)
             ? $response
-            : $response->cookie('refreshToken', '', -1);
+            : $response->cookie('refresh_token', '', -1);
     }
 
     protected function tokenResponse(
@@ -195,7 +197,7 @@ class AuthController extends Controller
         // Web: refresh token in HttpOnly cookie only
         return $this->apiResponse($message, $data)
             ->cookie(
-                'refreshToken',
+                'refresh_token',
                 $refreshToken,
                 $this->refreshTokenTtlMinutes(),
                 '/',
