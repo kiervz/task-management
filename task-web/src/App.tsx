@@ -21,6 +21,10 @@ const ResetPassword = lazy(
 );
 const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
+const Projects = lazy(() => import('./pages/projects/Projects'));
+const ProjectDetail = lazy(
+  () => import('./pages/projects/project-detail/ProjectDetail'),
+);
 
 function App() {
   return (
@@ -42,7 +46,8 @@ function App() {
           <Route element={<PrivateLayout />}>
             <Route path="/" element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/projects" element={<>Projects</>} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:code" element={<ProjectDetail />} />
             </Route>
           </Route>
 

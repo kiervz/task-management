@@ -16,13 +16,46 @@ class ProjectService
 {
     public function getUserProjects(User $user, int $perPage, array $filters)
     {
+        $statuses = $filters['status'] ?? [];
+        $priorities = $filters['priority'] ?? [];
+        $startDateFrom = $filters['start_date_from'] ?? null;
+        $startDateTo = $filters['start_date_to'] ?? null;
+
+        $allowedSortColumns = [
+            'created_at',
+            'name',
+            'description',
+            'start_date',
+            'end_date',
+            'status',
+            'priority',
+        ];
+
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortDir = strtolower((string) ($filters['sort_dir'] ?? 'desc'));
+
+        if (!in_array($sortBy, $allowedSortColumns, true)) {
+            $sortBy = 'created_at';
+        }
+
+        if (!in_array($sortDir, ['asc', 'desc'], true)) {
+            $sortDir = 'desc';
+        }
+
         return Project::query()
             ->with(['user', 'members'])
             ->whereHas('members', fn ($q) => $q->where('user_id', $user->id))
-            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
-            ->when($filters['priority'] ?? null, fn ($q, $priority) => $q->where('priority', $priority))
-            ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
-            ->latest()
+            ->when($statuses !== [], fn ($q) => $q->whereIn('status', $statuses))
+            ->when($priorities !== [], fn ($q) => $q->whereIn('priority', $priorities))
+            ->when($filters['search'] ?? null, fn ($q, $search) =>
+                $q->where(function ($inner) use ($search) {
+                    $inner->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                }))
+            ->when($startDateFrom && $startDateTo, fn ($q) => $q->whereBetween('start_date', [$startDateFrom, $startDateTo]))
+            ->when($startDateFrom && !$startDateTo, fn ($q) => $q->whereDate('start_date', '>=', $startDateFrom))
+            ->when(!$startDateFrom && $startDateTo, fn ($q) => $q->whereDate('start_date', '<=', $startDateTo))
+            ->orderBy($sortBy, $sortDir)
             ->paginate($perPage);
     }
 

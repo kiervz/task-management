@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\ConfirmProjectInviteRequest;
+use App\Http\Requests\Project\GetProjectsRequest;
 use App\Http\Resources\Project\ProjectMemberResource;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\StoreProjectInviteRequest;
@@ -21,12 +22,12 @@ class ProjectController extends Controller
 {
     public function __construct(private ProjectService $projectService) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(GetProjectsRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Project::class);
 
-        $perPage = min((int) $request->integer('per_page', 10), 50);
-        $filters = $request->only(['status', 'priority', 'search']);
+        $filters = $request->validated();
+        $perPage = (int) ($filters['per_page'] ?? 10);
 
         $projects = $this->projectService->getUserProjects(
             $request->user(),

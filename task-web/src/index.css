@@ -137,3 +137,8 @@
     cursor: default;
   }
 }
+
+@theme {
+  --breakpoint-2xs: 384px;
+  --breakpoint-xs: 480px;
+}
