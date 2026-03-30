@@ -3,6 +3,9 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import PublicLayout from './layouts/PublicLayout';
 import PrivateLayout from './layouts/PrivateLayout';
+import AppLayout from './layouts/AppLayout';
+import Loading from './components/ui/loading';
+import NotFound from './components/ui/not-found';
 
 const Login = lazy(() => import('./pages/auth/login/Login'));
 const Register = lazy(() => import('./pages/auth/register/Register'));
@@ -22,7 +25,7 @@ const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<>Loading...</>}>
+      <Suspense fallback={<Loading message="Checking session..." />}>
         <Routes>
           <Route element={<PublicLayout />}>
             <Route path="/login" element={<Login />} />
@@ -37,10 +40,13 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Route>
           <Route element={<PrivateLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/projects" element={<>Projects</>} />
+            </Route>
           </Route>
 
-          <Route path="*" element={<>404 Page Not Found.</>}></Route>
+          <Route path="*" element={<NotFound />}></Route>
         </Routes>
       </Suspense>
     </BrowserRouter>

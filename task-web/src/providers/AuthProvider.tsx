@@ -7,8 +7,8 @@ import {
   setAccessToken,
 } from '@/store/slices/userSlice';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { Spinner } from '@/components/ui/spinner';
 import { useGetMeQuery, useRefreshTokenMutation } from '@/store/api/authApi';
+import Loading from '@/components/ui/loading';
 
 export default function AuthProvider({
   children,
@@ -45,12 +45,7 @@ export default function AuthProvider({
   }, [isError, accessToken, dispatch]);
 
   if (status === 'idle' || status === 'checking') {
-    return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <Spinner className="size-8" />
-        <p className="p-4 text-sm text-muted-foreground">Checking session...</p>
-      </div>
-    );
+    return <Loading message="Checking session..." />;
   }
 
   return <>{children}</>;

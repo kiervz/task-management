@@ -102,6 +102,8 @@ export const authApi = baseApi.injectEndpoints({
         query: () => '/auth/me',
         providesTags: ['User'],
       }),
+
+      logout: createPostMutationWithoutBody<ApiResponse<null>>('/auth/logout'),
     };
   },
 });
@@ -118,4 +120,5 @@ export const {
   useForgotPasswordResendOtpMutation,
   useForgotPasswordVerifyOtpMutation,
   useForgotPasswordResetPasswordMutation,
+  useLogoutMutation,
 } = authApi;
