@@ -37,7 +37,8 @@ export interface TaskPayload {
 }
 
 type TaskRequest = TaskPayload & { projectCode: string };
-type TaskUpdateRequest = TaskPayload & { taskId: string };
+type TaskUpdateRequest = Partial<TaskPayload> & { taskId: string };
+type TaskDeleteRequest = { taskId: string };
 
 export interface TasksQueryParams {
   projectCode: string;
@@ -125,6 +126,133 @@ export const taskApi = baseApi.injectEndpoints({
         method: 'PUT',
         body,
       }),
+      invalidatesTags: (_result, _error, { taskId }) => [
+        { type: 'Task', id: taskId },
+      ],
+      async onQueryStarted(
+        { taskId, ...patch },
+        { dispatch, getState, queryFulfilled },
+      ) {
+        const taskDetailPatchResult = dispatch(
+          taskApi.util.updateQueryData('taskGetByTaskId', taskId, (draft) => {
+            if (patch.title !== undefined) {
+              draft.response.title = patch.title;
+            }
+
+            if (patch.description !== undefined) {
+              draft.response.description = patch.description;
+            }
+
+            if (patch.task_status_id !== undefined) {
+              draft.response.status.id = patch.task_status_id;
+            }
+
+            if (patch.task_priority_id !== undefined) {
+              draft.response.priority.id = patch.task_priority_id;
+            }
+          }),
+        );
+
+        const cachedTaskListArgs = taskApi.util.selectCachedArgsForQuery(
+          getState(),
+          'tasksByProjectId',
+        );
+
+        const taskListPatchResults = cachedTaskListArgs.map((args) => {
+          const statuses =
+            taskApi.endpoints.taskStatuses.select(args.projectCode)(getState())
+              .data ?? [];
+          const priorities =
+            taskApi.endpoints.taskPriorities.select(args.projectCode)(
+              getState(),
+            ).data ?? [];
+
+          return dispatch(
+            taskApi.util.updateQueryData('tasksByProjectId', args, (draft) => {
+              const task = draft.tasks.find((item) => item.id === taskId);
+
+              if (!task) {
+                return;
+              }
+
+              if (patch.title !== undefined) {
+                task.title = patch.title;
+              }
+
+              if (patch.description !== undefined) {
+                task.description = patch.description;
+              }
+
+              if (patch.due_date !== undefined) {
+                task.due_date = patch.due_date;
+              }
+
+              if (patch.task_status_id !== undefined) {
+                const nextStatus = statuses.find(
+                  (status) => status.id === patch.task_status_id,
+                );
+
+                if (nextStatus) {
+                  task.status = nextStatus;
+                } else {
+                  task.status.id = patch.task_status_id;
+                }
+              }
+
+              if (patch.task_priority_id !== undefined) {
+                const nextPriority = priorities.find(
+                  (priority) => priority.id === patch.task_priority_id,
+                );
+
+                if (nextPriority) {
+                  task.priority = nextPriority;
+                } else {
+                  task.priority.id = patch.task_priority_id;
+                }
+              }
+            }),
+          );
+        });
+
+        try {
+          const { data } = await queryFulfilled;
+
+          dispatch(
+            taskApi.util.updateQueryData('taskGetByTaskId', taskId, (draft) => {
+              draft.response = data.response;
+            }),
+          );
+
+          cachedTaskListArgs.forEach((args) => {
+            dispatch(
+              taskApi.util.updateQueryData(
+                'tasksByProjectId',
+                args,
+                (draft) => {
+                  const index = draft.tasks.findIndex(
+                    (item) => item.id === taskId,
+                  );
+
+                  if (index >= 0) {
+                    draft.tasks[index] = data.response;
+                  }
+                },
+              ),
+            );
+          });
+        } catch {
+          taskDetailPatchResult.undo();
+          taskListPatchResults.forEach((result) => result.undo());
+        }
+      },
+    }),
+
+    taskDelete: builder.mutation<void, TaskDeleteRequest>({
+      query: ({ taskId }) => ({
+        url: `/tasks/${taskId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['ProjectTasks'],
     }),
 
     taskTypes: builder.query<Array<TaskType>, string>({
@@ -158,6 +286,7 @@ export const {
   useTaskGetByTaskIdQuery,
   useTaskAddMutation,
   useTaskUpdateMutation,
+  useTaskDeleteMutation,
   useTaskTypesQuery,
   useTaskStatusesQuery,
   useTaskPrioritiesQuery,

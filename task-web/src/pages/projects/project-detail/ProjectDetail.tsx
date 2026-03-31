@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
@@ -21,17 +21,26 @@ const ProjectDetail = () => {
   const isMobile = useIsMobile();
 
   const currentTab = searchParams.get('tab') ?? TAB_LIST[0].value;
+  const isAddTaskParam = searchParams.get('addTask') === 'true';
 
   const navigate = useNavigate();
 
-  const [isOpenTaskModal, setIsOpenTaskModal] = useState<boolean>(false);
+  const handleAddTask = () => {
+    setSearchParams((prev) => {
+      prev.set('addTask', 'true');
+      return prev;
+    });
+  };
+
+  const handleCloseModal = () => {
+    setSearchParams((prev) => {
+      prev.delete('addTask');
+      return prev;
+    });
+  };
 
   const { data, isError, error, isLoading, isFetching } =
     useProjectGetByCodeQuery(code!);
-
-  const handleAddTask = () => {
-    setIsOpenTaskModal(true);
-  };
 
   useEffect(() => {
     if (isError) {
@@ -119,8 +128,8 @@ const ProjectDetail = () => {
       </Tabs>
 
       <TaskFormModal
-        open={isOpenTaskModal}
-        onOpenChange={setIsOpenTaskModal}
+        open={isAddTaskParam}
+        onOpenChange={handleCloseModal}
         projectCode={project.code}
       />
     </div>

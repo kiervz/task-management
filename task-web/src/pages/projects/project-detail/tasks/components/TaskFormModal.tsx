@@ -84,22 +84,15 @@ export default function TaskFormModal({
   );
 
   const { data: members, isLoading: isFetchingMembers } =
-    useProjectMembersQuery(projectCode, { skip: !open });
+    useProjectMembersQuery(projectCode);
 
-  const { data: types } = useTaskTypesQuery(projectCode, {
-    skip: !open,
-  });
-  const { data: statuses } = useTaskStatusesQuery(projectCode, {
-    skip: !open,
-  });
-  const { data: priorities } = useTaskPrioritiesQuery(projectCode, {
-    skip: !open,
-  });
+  const { data: types } = useTaskTypesQuery(projectCode);
+  const { data: statuses } = useTaskStatusesQuery(projectCode);
+  const { data: priorities } = useTaskPrioritiesQuery(projectCode);
 
   const [taskAdd, { isLoading: isAdding }] = useTaskAddMutation();
   const [taskUpdate, { isLoading: isUpdating }] = useTaskUpdateMutation();
 
-  // Generate schema and default values from fetched catalogs
   const { schema, defaultValues } = useMemo(() => {
     const typeIds = types?.map((t) => t.id) ?? [];
     const statusIds = statuses?.map((s) => s.id) ?? [];
@@ -126,7 +119,7 @@ export default function TaskFormModal({
   } = useForm<TaskFormValues>({
     resolver: zodResolver(schema),
     defaultValues,
-    mode: 'onBlur',
+    mode: 'onSubmit',
   });
 
   const typeValue = useWatch({ control, name: 'type' });

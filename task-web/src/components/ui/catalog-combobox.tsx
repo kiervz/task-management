@@ -8,6 +8,7 @@ import {
   ComboboxValue,
 } from '@/components/ui/combobox';
 import type { TaskMeta } from '@/@types/task';
+import { cn } from '../../lib/utils';
 
 interface CatalogComboboxProps {
   id: string;
@@ -17,6 +18,7 @@ interface CatalogComboboxProps {
   emptyText: string;
   hasError: boolean;
   onValueChange: (val: string) => void;
+  className?: string;
 }
 
 export default function CatalogCombobox({
@@ -27,6 +29,7 @@ export default function CatalogCombobox({
   emptyText,
   hasError,
   onValueChange,
+  className,
 }: Readonly<CatalogComboboxProps>) {
   return (
     <Combobox
@@ -36,7 +39,10 @@ export default function CatalogCombobox({
       items={items.map((i) => i.id)}
     >
       <ComboboxTrigger
-        className="h-8 w-full flex justify-between items-center rounded-md border border-input bg-transparent px-3 text-sm"
+        className={cn(
+          'h-8 w-full flex justify-between items-center rounded-md border border-input bg-transparent px-3 text-sm',
+          className,
+        )}
         aria-invalid={hasError}
       >
         <ComboboxValue>

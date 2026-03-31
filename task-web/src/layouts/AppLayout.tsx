@@ -34,14 +34,18 @@ const AppLayout = () => {
   const location = useLocation();
 
   const rawSegments = location.pathname.split('/').filter(Boolean);
+  const SKIP_SEGMENTS = new Set(['tasks']);
 
-  const segments = rawSegments.map((seg, index) => {
-    if (isDynamic(seg)) {
-      const parent = rawSegments[index - 1];
-      return { slug: seg, label: DYNAMIC_LABELS[parent] ?? 'Details' };
-    }
-    return { slug: seg, label: ROUTE_LABELS[seg] };
-  });
+  const segments = rawSegments
+    .filter((seg) => !SKIP_SEGMENTS.has(seg))
+    .map((seg) => {
+      if (isDynamic(seg)) {
+        const originalIndex = rawSegments.indexOf(seg);
+        const parent = rawSegments[originalIndex - 1];
+        return { slug: seg, label: DYNAMIC_LABELS[parent] ?? 'Details' };
+      }
+      return { slug: seg, label: ROUTE_LABELS[seg] };
+    });
 
   return (
     <SidebarProvider>

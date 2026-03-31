@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, MoreHorizontal, Pencil } from 'lucide-react';
+import { toast } from 'sonner';
 
-import type { Task } from '@/@types/task';
+import type { Task, TaskMeta } from '@/@types/task';
 import type { TaskSortBy } from '@/store/api/taskApi';
+import { useTaskUpdateMutation } from '@/store/api/taskApi';
 import {
   ColumnHeader,
   type SortOrder,
@@ -12,6 +14,8 @@ import { formatDate } from '@/lib/formatDate';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCount } from '@/lib/formatCount';
+import CatalogCombobox from '@/components/ui/catalog-combobox';
+import { handleApiError } from '@/lib/apiErrorHandler';
 import {
   Avatar,
   AvatarFallback,
@@ -25,20 +29,89 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '../../../../../components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+type TaskInlineSelectProps = {
+  task: Task;
+  projectCode: string;
+  items: TaskMeta[];
+  valueId: string;
+  field: 'task_status_id' | 'task_priority_id';
+  placeholder: string;
+  savingLabel: string;
+};
+
+function TaskInlineSelect({
+  task,
+  projectCode,
+  items,
+  valueId,
+  field,
+  placeholder,
+  savingLabel,
+}: Readonly<TaskInlineSelectProps>) {
+  const [taskUpdate, { isLoading }] = useTaskUpdateMutation();
+
+  const handleValueChange = async (nextId: string) => {
+    if (!nextId || nextId === valueId) {
+      return;
+    }
+
+    try {
+      await taskUpdate({ taskId: task.id, [field]: nextId }).unwrap();
+      toast.success(`${savingLabel} updated`);
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  return (
+    <div className="min-w-36">
+      <CatalogCombobox
+        id={`${field}-${projectCode}-${task.id}`}
+        value={valueId}
+        items={items}
+        placeholder={placeholder}
+        emptyText={`No ${savingLabel.toLowerCase()} options.`}
+        hasError={false}
+        onValueChange={handleValueChange}
+        className="border-none"
+      />
+      {isLoading && (
+        <p className="mt-1 text-[11px] text-muted-foreground">Saving...</p>
+      )}
+    </div>
+  );
+}
 
 type ColumnsArgs = {
+  projectCode: string;
+  statuses: TaskMeta[];
+  priorities: TaskMeta[];
   sortBy: TaskSortBy;
   sortOrder: SortOrder;
   onSortChange: (
     sortBy: TaskSortBy | null,
     sortOrder: SortOrder | null,
   ) => void;
+  onEdit: (taskId: string) => void;
 };
 
 export const columns = ({
+  projectCode,
+  statuses,
+  priorities,
   sortBy,
   sortOrder,
   onSortChange,
+  onEdit,
 }: ColumnsArgs): ColumnDef<Task>[] => [
   {
     accessorKey: 'title',
@@ -75,12 +148,40 @@ export const columns = ({
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => row.original.status.name,
+    cell: ({ row }) => {
+      const task = row.original;
+
+      return (
+        <TaskInlineSelect
+          task={task}
+          projectCode={projectCode}
+          items={statuses}
+          valueId={task.status.id}
+          field="task_status_id"
+          placeholder="Select status"
+          savingLabel="Status"
+        />
+      );
+    },
   },
   {
     accessorKey: 'priority',
     header: 'Priority',
-    cell: ({ row }) => row.original.priority.name,
+    cell: ({ row }) => {
+      const task = row.original;
+
+      return (
+        <TaskInlineSelect
+          task={task}
+          projectCode={projectCode}
+          items={priorities}
+          valueId={task.priority.id}
+          field="task_priority_id"
+          placeholder="Select priority"
+          savingLabel="Priority"
+        />
+      );
+    },
   },
   {
     accessorKey: 'due_date',
@@ -141,6 +242,35 @@ export const columns = ({
             {formatCount(task?.comments_count ?? 0)}
           </span>
         </div>
+      );
+    },
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      const task = row.original;
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="ghost" className="h-8 w-8 p-0" />}
+          >
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => onEdit(task.id)}
+                className="flex items-center gap-2"
+              >
+                <Pencil className="h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       );
     },
   },

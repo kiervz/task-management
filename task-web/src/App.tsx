@@ -25,6 +25,7 @@ const Projects = lazy(() => import('./pages/projects/Projects'));
 const ProjectDetail = lazy(
   () => import('./pages/projects/project-detail/ProjectDetail'),
 );
+const TaskDetail = lazy(() => import('./pages/tasks/task-detail/TaskDetail'));
 
 function App() {
   return (
@@ -48,6 +49,10 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:code" element={<ProjectDetail />} />
+              <Route
+                path="/projects/:projectCode/tasks/:taskCode"
+                element={<TaskDetail />}
+              />
             </Route>
           </Route>
 

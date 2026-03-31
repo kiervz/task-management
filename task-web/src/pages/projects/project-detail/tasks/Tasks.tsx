@@ -5,6 +5,8 @@ import type { ColumnFiltersState } from '@tanstack/react-table';
 import DataTable from '@/components/data-table/data-table';
 import FetchErrorAlert from '@/components/errors/FetchErrorAlert';
 import {
+  useTaskPrioritiesQuery,
+  useTaskStatusesQuery,
   useTasksByProjectIdQuery,
   type TaskFilters,
   type TaskSortBy,
@@ -12,6 +14,7 @@ import {
 } from '@/store/api/taskApi';
 import { columns } from './components/columns';
 import { FACETED_FILTERS } from '../constants';
+import TaskFormModal from './components/TaskFormModal';
 
 const Tasks = () => {
   const { code } = useParams<{ code: string }>();
@@ -24,6 +27,7 @@ const Tasks = () => {
   const [statusValues, setStatusValues] = useState<string[]>([]);
   const [priorityValues, setPriorityValues] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
+  const [editTaskId, setEditTaskId] = useState<string | null>(null);
 
   const columnFilters: ColumnFiltersState = useMemo(
     () => [
@@ -55,6 +59,9 @@ const Tasks = () => {
       sort_dir: sortOrder,
       filters,
     });
+
+  const { data: statuses = [] } = useTaskStatusesQuery(code!);
+  const { data: priorities = [] } = useTaskPrioritiesQuery(code!);
 
   const tasks = data?.tasks ?? [];
   const meta = data?.meta;
@@ -95,6 +102,14 @@ const Tasks = () => {
     setPageIndex((prev) => (prev === 0 ? prev : 0));
   }, []);
 
+  const handleOpenEdit = useCallback((taskId: string) => {
+    setEditTaskId(taskId);
+  }, []);
+
+  const handleCloseEdit = useCallback(() => {
+    setEditTaskId(null);
+  }, []);
+
   if (isError) {
     return (
       <FetchErrorAlert
@@ -107,21 +122,38 @@ const Tasks = () => {
   }
 
   return (
-    <DataTable
-      columns={columns({ sortBy, sortOrder, onSortChange })}
-      data={tasks}
-      pageIndex={pageIndex}
-      pageSize={pageSize}
-      pageCount={meta?.last_page ?? 1}
-      onPageIndexChange={handlePageIndexChange}
-      onPageSizeChange={handlePageSizeChange}
-      search={searchInput}
-      onSearchChange={handleSearchChange}
-      columnFilters={columnFilters}
-      onColumnFiltersChange={handleColumnFiltersChange}
-      facetedFilters={FACETED_FILTERS}
-      isLoading={isFetching}
-    />
+    <>
+      <DataTable
+        columns={columns({
+          projectCode: code!,
+          statuses,
+          priorities,
+          sortBy,
+          sortOrder,
+          onSortChange,
+          onEdit: handleOpenEdit,
+        })}
+        data={tasks}
+        pageIndex={pageIndex}
+        pageSize={pageSize}
+        pageCount={meta?.last_page ?? 1}
+        onPageIndexChange={handlePageIndexChange}
+        onPageSizeChange={handlePageSizeChange}
+        search={searchInput}
+        onSearchChange={handleSearchChange}
+        columnFilters={columnFilters}
+        onColumnFiltersChange={handleColumnFiltersChange}
+        facetedFilters={FACETED_FILTERS}
+        isLoading={isFetching}
+      />
+
+      <TaskFormModal
+        open={!!editTaskId}
+        onOpenChange={handleCloseEdit}
+        taskId={editTaskId ?? undefined}
+        projectCode={code!}
+      />
+    </>
   );
 };
 

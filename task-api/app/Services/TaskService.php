@@ -60,7 +60,7 @@ class TaskService
     public function findTask(Project $project, string $taskId): Task
     {
         $task = $project->tasks()
-            ->with(['creator', 'type', 'status', 'priority', 'assignees.user'])
+            ->with(['creator', 'type', 'status', 'priority', 'assignees.user', 'project'])
             ->whereKey($taskId)
             ->first();
 
