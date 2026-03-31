@@ -10,6 +10,8 @@ import { useProjectGetByCodeQuery } from '@/store/api/projectApi';
 import { STAT_CARDS, TAB_LIST } from './constants';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
+import Tasks from './tasks/Tasks';
+import TaskFormModal from './tasks/components/TaskFormModal';
 
 const ProjectDetail = () => {
   console.log('ProjectDetail Rendered');
@@ -107,7 +109,7 @@ const ProjectDetail = () => {
 
         {TAB_LIST.map(({ value }) => (
           <TabsContent value={value} key={value}>
-            {value === 'tasks' && <>Tasks Component</>}
+            {value === 'tasks' && <Tasks />}
             {value === 'calendar' && <>Calendar Component</>}
             {value === 'analytics' && <>Analytics Component</>}
             {value === 'reports' && <>Reports Component</>}
@@ -115,6 +117,12 @@ const ProjectDetail = () => {
           </TabsContent>
         ))}
       </Tabs>
+
+      <TaskFormModal
+        open={isOpenTaskModal}
+        onOpenChange={setIsOpenTaskModal}
+        projectCode={project.code}
+      />
     </div>
   );
 };

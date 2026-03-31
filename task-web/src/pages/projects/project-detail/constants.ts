@@ -61,30 +61,29 @@ export const TAB_LIST = [
 ] as const;
 
 export const STATUS_OPTIONS = [
-  { label: 'Backlog', value: 'Backlog' },
-  { label: 'Todo', value: 'Todo' },
-  { label: 'In Progress', value: 'In Progress' },
-  { label: 'Review', value: 'Review' },
-  { label: 'Done', value: 'Done' },
+  { label: 'Backlog', value: 'backlog' },
+  { label: 'Todo', value: 'todo' },
+  { label: 'In Progress', value: 'in-progress' },
+  { label: 'Review', value: 'review' },
+  { label: 'Done', value: 'done' },
 ];
 
 export const PRIORITY_OPTIONS = [
-  { label: 'Low', value: 'Low' },
-  { label: 'Medium', value: 'Medium' },
-  { label: 'High', value: 'High' },
-  { label: 'Critical', value: 'Critical' },
+  { label: 'Low', value: 'low' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'High', value: 'high' },
 ];
 
 export const LABEL_OPTIONS = [
-  { label: 'Task', value: 'Task' },
-  { label: 'Feature', value: 'Feature' },
-  { label: 'Bug', value: 'Bug' },
-  { label: 'Improvement', value: 'Improvement' },
-  { label: 'Chore', value: 'Chore' },
+  { label: 'Task', value: 'task' },
+  { label: 'Feature', value: 'feature' },
+  { label: 'Bug', value: 'bug' },
+  { label: 'Improvement', value: 'improvement' },
+  { label: 'Chore', value: 'chore' },
 ];
 
 export const FACETED_FILTERS = [
-  { columnId: 'label', title: 'Label', options: LABEL_OPTIONS },
+  { columnId: 'type', title: 'Type', options: LABEL_OPTIONS },
   { columnId: 'status', title: 'Status', options: STATUS_OPTIONS },
   { columnId: 'priority', title: 'Priority', options: PRIORITY_OPTIONS },
 ];

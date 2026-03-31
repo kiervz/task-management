@@ -63,6 +63,7 @@ export default function DataTable<TData, TValue>({
 }: Readonly<DataTableProps<TData, TValue>>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     label: false,
+    type: false,
   });
 
   const [inputValue, setInputValue] = useState<string>(search);

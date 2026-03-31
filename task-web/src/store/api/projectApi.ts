@@ -2,6 +2,7 @@ import type { ApiResponse } from '@/@types/apiResponse';
 import type { Paginated, PaginationMeta } from '@/@types/paginated';
 import type { Project } from '@/@types/project';
 import type { ProjectFormValues } from '@/pages/projects/schemas/projectSchema';
+import type { User } from '@/@types/user';
 import { baseApi } from './baseApi';
 
 export type ProjectSortBy =
@@ -33,7 +34,7 @@ type ProjectResponse = ApiResponse<Project>;
 type ProjectRequest = ProjectFormValues;
 type ProjectUpdateRequest = ProjectFormValues & { id: number | string };
 type ProjectMemberResponse = ApiResponse<
-  Array<{ id: string; name: string; email: string; role: string }>
+  Paginated<{ id: string; project_id: string; role: string; user: User }>
 >;
 
 export interface ProjectsQueryParams {
@@ -117,11 +118,15 @@ export const projectApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/projects/${id}`, method: 'DELETE' }),
       invalidatesTags: ['Projects'],
     }),
-    projectMembers: builder.query<ProjectMemberResponse, string>({
+    projectMembers: builder.query<
+      Array<{ id: string; project_id: string; role: string; user: User }>,
+      string
+    >({
       query: (projectId) => ({
         url: `/projects/${projectId}/members`,
         method: 'GET',
       }),
+      transformResponse: (res: ProjectMemberResponse) => res.response.data,
     }),
   }),
 });
