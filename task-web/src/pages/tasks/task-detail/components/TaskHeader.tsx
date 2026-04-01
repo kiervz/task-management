@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { ArrowLeft, CircleCheck, CircleDot } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [editedTitle, setEditedTitle] = useState<string>(title);
 
-  console.log('Rendered TaskHeader');
+  console.log('TaskHeader Rendered');
 
   const onChangeTitle = (title: string) => {
     setEditedTitle(title);
@@ -146,4 +146,4 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
   );
 };
 
-export default TaskHeader;
+export default memo(TaskHeader);

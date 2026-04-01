@@ -22,9 +22,20 @@ export interface TaskFilters {
 
 type TaskPaginatedResponse = ApiResponse<Paginated<Task>>;
 type TaskResponse = ApiResponse<Task>;
-type TaskCatalogResponse = ApiResponse<{ data: TaskType[] }>;
-type StatusCatalogResponse = ApiResponse<{ data: TaskStatus[] }>;
-type PriorityCatalogResponse = ApiResponse<{ data: TaskPriority[] }>;
+type CatalogPayload<T> = { data: T[] } | T[];
+type TaskCatalogResponse = ApiResponse<CatalogPayload<TaskType>>;
+type StatusCatalogResponse = ApiResponse<CatalogPayload<TaskStatus>>;
+type PriorityCatalogResponse = ApiResponse<CatalogPayload<TaskPriority>>;
+
+const extractCatalogItems = <T>(
+  payload: CatalogPayload<T> | null | undefined,
+): T[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  return payload?.data ?? [];
+};
 
 export interface TaskPayload {
   title: string;
@@ -126,9 +137,6 @@ export const taskApi = baseApi.injectEndpoints({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: (_result, _error, { taskId }) => [
-        { type: 'Task', id: taskId },
-      ],
       async onQueryStarted(
         { taskId, ...patch },
         { dispatch, getState, queryFulfilled },
@@ -260,7 +268,8 @@ export const taskApi = baseApi.injectEndpoints({
         url: `/projects/${projectCode}/task-types`,
         method: 'GET',
       }),
-      transformResponse: (res: TaskCatalogResponse) => res.response.data,
+      transformResponse: (res: TaskCatalogResponse) =>
+        extractCatalogItems(res.response),
     }),
 
     taskStatuses: builder.query<Array<TaskStatus>, string>({
@@ -268,7 +277,8 @@ export const taskApi = baseApi.injectEndpoints({
         url: `/projects/${projectCode}/task-statuses`,
         method: 'GET',
       }),
-      transformResponse: (res: StatusCatalogResponse) => res.response.data,
+      transformResponse: (res: StatusCatalogResponse) =>
+        extractCatalogItems(res.response),
     }),
 
     taskPriorities: builder.query<Array<TaskPriority>, string>({
@@ -276,7 +286,8 @@ export const taskApi = baseApi.injectEndpoints({
         url: `/projects/${projectCode}/task-priorities`,
         method: 'GET',
       }),
-      transformResponse: (res: PriorityCatalogResponse) => res.response.data,
+      transformResponse: (res: PriorityCatalogResponse) =>
+        extractCatalogItems(res.response),
     }),
   }),
 });

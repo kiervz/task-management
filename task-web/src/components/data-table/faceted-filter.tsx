@@ -100,35 +100,37 @@ export function FacetedFilter<TData, TValue>({
       </Button>
 
       {open && (
-        <div className="absolute z-999! mt-1 w-48 rounded-md border bg-popover p-1 shadow-md overflow-auto!">
-          {options.map((option) => {
-            const isSelected = selectedValues.includes(option.value);
-            return (
-              <button
-                key={option.value}
-                onClick={() => toggleValue(option.value)}
-                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent cursor-pointer"
-              >
-                <div
-                  className={cn(
-                    'flex h-4 w-4 items-center justify-center rounded-sm border border-primary shrink-0',
-                    isSelected
-                      ? 'bg-primary text-primary-foreground'
-                      : 'opacity-50',
-                  )}
+        <div className="absolute z-999! h-auto mt-1 w-48 rounded-md border bg-popover p-1 shadow-md ">
+          <div className="max-h-60 overflow-auto!">
+            {options.map((option) => {
+              const isSelected = selectedValues.includes(option.value);
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => toggleValue(option.value)}
+                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent cursor-pointer"
                 >
-                  {isSelected && (
-                    <Check
-                      className="h-3 w-3"
-                      style={{ stroke: 'var(--primary-foreground)' }}
-                    />
-                  )}
-                </div>
-                {option.icon && <option.icon className="h-4 w-4 shrink-0" />}
-                <span>{option.label}</span>
-              </button>
-            );
-          })}
+                  <div
+                    className={cn(
+                      'flex h-4 w-4 items-center justify-center rounded-sm border border-primary shrink-0',
+                      isSelected
+                        ? 'bg-primary text-primary-foreground'
+                        : 'opacity-50',
+                    )}
+                  >
+                    {isSelected && (
+                      <Check
+                        className="h-3 w-3"
+                        style={{ stroke: 'var(--primary-foreground)' }}
+                      />
+                    )}
+                  </div>
+                  {option.icon && <option.icon className="h-4 w-4 shrink-0" />}
+                  <span>{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
           {selectedValues.length > 0 && (
             <>

@@ -1,11 +1,9 @@
 import { Link } from 'react-router-dom';
 import type { ColumnDef } from '@tanstack/react-table';
 import { MessageSquare, MoreHorizontal, Pencil } from 'lucide-react';
-import { toast } from 'sonner';
 
 import type { Task, TaskMeta } from '@/@types/task';
 import type { TaskSortBy } from '@/store/api/taskApi';
-import { useTaskUpdateMutation } from '@/store/api/taskApi';
 import {
   ColumnHeader,
   type SortOrder,
@@ -14,8 +12,6 @@ import { formatDate } from '@/lib/formatDate';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCount } from '@/lib/formatCount';
-import CatalogCombobox from '@/components/ui/catalog-combobox';
-import { handleApiError } from '@/lib/apiErrorHandler';
 import {
   Avatar,
   AvatarFallback,
@@ -37,59 +33,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-type TaskInlineSelectProps = {
-  task: Task;
-  projectCode: string;
-  items: TaskMeta[];
-  valueId: string;
-  field: 'task_status_id' | 'task_priority_id';
-  placeholder: string;
-  savingLabel: string;
-};
-
-function TaskInlineSelect({
-  task,
-  projectCode,
-  items,
-  valueId,
-  field,
-  placeholder,
-  savingLabel,
-}: Readonly<TaskInlineSelectProps>) {
-  const [taskUpdate, { isLoading }] = useTaskUpdateMutation();
-
-  const handleValueChange = async (nextId: string) => {
-    if (!nextId || nextId === valueId) {
-      return;
-    }
-
-    try {
-      await taskUpdate({ taskId: task.id, [field]: nextId }).unwrap();
-      toast.success(`${savingLabel} updated`);
-    } catch (error) {
-      handleApiError(error);
-    }
-  };
-
-  return (
-    <div className="min-w-36">
-      <CatalogCombobox
-        id={`${field}-${projectCode}-${task.id}`}
-        value={valueId}
-        items={items}
-        placeholder={placeholder}
-        emptyText={`No ${savingLabel.toLowerCase()} options.`}
-        hasError={false}
-        onValueChange={handleValueChange}
-        className="border-none"
-      />
-      {isLoading && (
-        <p className="mt-1 text-[11px] text-muted-foreground">Saving...</p>
-      )}
-    </div>
-  );
-}
+import TaskInlineSelect from './TaskInlineSelect';
 
 type ColumnsArgs = {
   projectCode: string;
@@ -97,6 +41,8 @@ type ColumnsArgs = {
   priorities: TaskMeta[];
   sortBy: TaskSortBy;
   sortOrder: SortOrder;
+  inlineSavingKeys: Set<string>;
+  onInlineSavingChange: (key: string, isSaving: boolean) => void;
   onSortChange: (
     sortBy: TaskSortBy | null,
     sortOrder: SortOrder | null,
@@ -110,6 +56,8 @@ export const columns = ({
   priorities,
   sortBy,
   sortOrder,
+  inlineSavingKeys,
+  onInlineSavingChange,
   onSortChange,
   onEdit,
 }: ColumnsArgs): ColumnDef<Task>[] => [
@@ -150,6 +98,7 @@ export const columns = ({
     header: 'Status',
     cell: ({ row }) => {
       const task = row.original;
+      const savingKey = `task-status-${task.id}`;
 
       return (
         <TaskInlineSelect
@@ -160,6 +109,9 @@ export const columns = ({
           field="task_status_id"
           placeholder="Select status"
           savingLabel="Status"
+          savingKey={savingKey}
+          isSaving={inlineSavingKeys.has(savingKey)}
+          onSavingChange={onInlineSavingChange}
         />
       );
     },
@@ -169,6 +121,7 @@ export const columns = ({
     header: 'Priority',
     cell: ({ row }) => {
       const task = row.original;
+      const savingKey = `task-priority-${task.id}`;
 
       return (
         <TaskInlineSelect
@@ -179,6 +132,9 @@ export const columns = ({
           field="task_priority_id"
           placeholder="Select priority"
           savingLabel="Priority"
+          savingKey={savingKey}
+          isSaving={inlineSavingKeys.has(savingKey)}
+          onSavingChange={onInlineSavingChange}
         />
       );
     },

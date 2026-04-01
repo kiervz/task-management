@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, FileSearch } from 'lucide-react';
@@ -29,29 +30,35 @@ const TaskDetail = () => {
 
   const taskData = data?.response;
 
-  const handleUpdateTitle = async (title: string) => {
-    if (!taskData) return;
+  const handleUpdateTitle = useCallback(
+    async (title: string) => {
+      if (!taskData) return;
 
-    try {
-      await taskUpdate({ taskId: taskData.id, title }).unwrap();
-      toast.success('Task title updated successfully');
-    } catch (err) {
-      handleApiError(err);
-    }
-  };
+      try {
+        await taskUpdate({ taskId: taskData.id, title }).unwrap();
+        toast.success('Task title updated successfully');
+      } catch (err) {
+        handleApiError(err);
+      }
+    },
+    [taskData, taskUpdate],
+  );
 
-  const handleUpdateDescription = async (description: string) => {
-    if (!taskData) return;
+  const handleUpdateDescription = useCallback(
+    async (description: string) => {
+      if (!taskData) return;
 
-    try {
-      await taskUpdate({ taskId: taskData.id, description }).unwrap();
-      toast.success('Task description updated successfully');
-    } catch (err) {
-      handleApiError(err);
-    }
-  };
+      try {
+        await taskUpdate({ taskId: taskData.id, description }).unwrap();
+        toast.success('Task description updated successfully');
+      } catch (err) {
+        handleApiError(err);
+      }
+    },
+    [taskData, taskUpdate],
+  );
 
-  const handleDeleteTask = async () => {
+  const handleDeleteTask = useCallback(async () => {
     if (!taskData) return;
 
     try {
@@ -63,7 +70,7 @@ const TaskDetail = () => {
     } catch (err) {
       handleApiError(err);
     }
-  };
+  }, [taskData, taskDelete, navigate]);
 
   if (isLoading) {
     return (

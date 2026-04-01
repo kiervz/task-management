@@ -24,12 +24,12 @@ class TaskCatalogService
         return $this->projectService->findProject($projectCode);
     }
 
-    public function getTaskTypes(Project $project, int $perPage)
+    public function getTaskTypes(Project $project)
     {
         return $project->taskTypes()
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate($perPage);
+            ->get();
     }
 
     public function createTaskType(Project $project, array $data): TaskType
@@ -109,12 +109,12 @@ class TaskCatalogService
         $taskType->delete();
     }
 
-    public function getTaskStatuses(Project $project, int $perPage)
+    public function getTaskStatuses(Project $project)
     {
         return $project->taskStatuses()
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate($perPage);
+            ->get();
     }
 
     public function createTaskStatus(Project $project, array $data): TaskStatus
@@ -195,12 +195,12 @@ class TaskCatalogService
         $taskStatus->delete();
     }
 
-    public function getTaskPriorities(Project $project, int $perPage)
+    public function getTaskPriorities(Project $project)
     {
         return $project->taskPriorities()
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate($perPage);
+            ->get();
     }
 
     public function createTaskPriority(Project $project, array $data): TaskPriority

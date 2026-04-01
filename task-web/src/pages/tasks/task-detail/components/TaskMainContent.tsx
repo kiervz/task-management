@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import IssueContentHeader from './IssueContentHeader';
@@ -24,7 +24,7 @@ const TaskMainContent: React.FC<TaskMainContentProps> = ({
   onDelete,
   isDeleting = false,
 }) => {
-  console.log('Rendered TaskMainContent');
+  console.log('TaskMainContent Rendered');
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [contentValue, setContentValue] = useState<string>(content);
@@ -76,4 +76,4 @@ const TaskMainContent: React.FC<TaskMainContentProps> = ({
   );
 };
 
-export default TaskMainContent;
+export default memo(TaskMainContent);

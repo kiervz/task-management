@@ -5,6 +5,7 @@ import type { ColumnFiltersState } from '@tanstack/react-table';
 import DataTable from '@/components/data-table/data-table';
 import FetchErrorAlert from '@/components/errors/FetchErrorAlert';
 import {
+  useTaskTypesQuery,
   useTaskPrioritiesQuery,
   useTaskStatusesQuery,
   useTasksByProjectIdQuery,
@@ -13,7 +14,6 @@ import {
   type TaskSortOrder,
 } from '@/store/api/taskApi';
 import { columns } from './components/columns';
-import { FACETED_FILTERS } from '../constants';
 import TaskFormModal from './components/TaskFormModal';
 
 const Tasks = () => {
@@ -28,6 +28,9 @@ const Tasks = () => {
   const [priorityValues, setPriorityValues] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
+  const [inlineSavingKeys, setInlineSavingKeys] = useState<Set<string>>(
+    () => new Set(),
+  );
 
   const columnFilters: ColumnFiltersState = useMemo(
     () => [
@@ -60,8 +63,39 @@ const Tasks = () => {
       filters,
     });
 
+  const { data: types = [] } = useTaskTypesQuery(code!);
   const { data: statuses = [] } = useTaskStatusesQuery(code!);
   const { data: priorities = [] } = useTaskPrioritiesQuery(code!);
+
+  const facetedFilters = useMemo(
+    () => [
+      {
+        columnId: 'type',
+        title: 'Type',
+        options: types.map((type) => ({
+          label: type.name,
+          value: type.code,
+        })),
+      },
+      {
+        columnId: 'status',
+        title: 'Status',
+        options: statuses.map((status) => ({
+          label: status.name,
+          value: status.code,
+        })),
+      },
+      {
+        columnId: 'priority',
+        title: 'Priority',
+        options: priorities.map((priority) => ({
+          label: priority.name,
+          value: priority.code,
+        })),
+      },
+    ],
+    [types, statuses, priorities],
+  );
 
   const tasks = data?.tasks ?? [];
   const meta = data?.meta;
@@ -92,6 +126,7 @@ const Tasks = () => {
     (idx: number) => setPageIndex(idx),
     [],
   );
+
   const handlePageSizeChange = useCallback((size: number) => {
     setPageSize(size);
     setPageIndex(0);
@@ -105,6 +140,29 @@ const Tasks = () => {
   const handleOpenEdit = useCallback((taskId: string) => {
     setEditTaskId(taskId);
   }, []);
+
+  const handleInlineSavingChange = useCallback(
+    (key: string, isSaving: boolean) => {
+      setInlineSavingKeys((prev) => {
+        const hasKey = prev.has(key);
+
+        if (isSaving === hasKey) {
+          return prev;
+        }
+
+        const next = new Set(prev);
+
+        if (isSaving) {
+          next.add(key);
+        } else {
+          next.delete(key);
+        }
+
+        return next;
+      });
+    },
+    [],
+  );
 
   const handleCloseEdit = useCallback(() => {
     setEditTaskId(null);
@@ -132,6 +190,8 @@ const Tasks = () => {
           sortOrder,
           onSortChange,
           onEdit: handleOpenEdit,
+          inlineSavingKeys,
+          onInlineSavingChange: handleInlineSavingChange,
         })}
         data={tasks}
         pageIndex={pageIndex}
@@ -143,7 +203,7 @@ const Tasks = () => {
         onSearchChange={handleSearchChange}
         columnFilters={columnFilters}
         onColumnFiltersChange={handleColumnFiltersChange}
-        facetedFilters={FACETED_FILTERS}
+        facetedFilters={facetedFilters}
         isLoading={isFetching}
       />
 

@@ -26,12 +26,11 @@ class TaskCatalogController extends Controller
         $project = $this->taskService->findProject($projectCode);
         $this->authorize('view', $project);
 
-        $perPage = min((int) $request->integer('per_page', 10), 50);
-        $items = $this->taskService->getTaskTypes($project, max($perPage, 1));
+        $items = $this->taskService->getTaskTypes($project);
 
         return $this->apiResponse(
             'Task types retrieved successfully.',
-            TaskTypeResource::collection($items)->response()->getData(true)
+            TaskTypeResource::collection($items)
         );
     }
 
@@ -76,12 +75,11 @@ class TaskCatalogController extends Controller
         $project = $this->taskService->findProject($projectCode);
         $this->authorize('view', $project);
 
-        $perPage = min((int) $request->integer('per_page', 10), 50);
-        $items = $this->taskService->getTaskStatuses($project, max($perPage, 1));
+        $items = $this->taskService->getTaskStatuses($project);
 
         return $this->apiResponse(
             'Task statuses retrieved successfully.',
-            TaskStatusResource::collection($items)->response()->getData(true)
+            TaskStatusResource::collection($items)
         );
     }
 
@@ -126,12 +124,11 @@ class TaskCatalogController extends Controller
         $project = $this->taskService->findProject($projectCode);
         $this->authorize('view', $project);
 
-        $perPage = min((int) $request->integer('per_page', 10), 50);
-        $items = $this->taskService->getTaskPriorities($project, max($perPage, 1));
+        $items = $this->taskService->getTaskPriorities($project);
 
         return $this->apiResponse(
             'Task priorities retrieved successfully.',
-            TaskPriorityResource::collection($items)->response()->getData(true)
+            TaskPriorityResource::collection($items)
         );
     }
 

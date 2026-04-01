@@ -17,6 +17,7 @@ interface CatalogComboboxProps {
   placeholder: string;
   emptyText: string;
   hasError: boolean;
+  disabled?: boolean;
   onValueChange: (val: string) => void;
   className?: string;
 }
@@ -28,6 +29,7 @@ export default function CatalogCombobox({
   placeholder,
   emptyText,
   hasError,
+  disabled = false,
   onValueChange,
   className,
 }: Readonly<CatalogComboboxProps>) {
@@ -35,15 +37,17 @@ export default function CatalogCombobox({
     <Combobox
       id={id}
       value={value}
+      disabled={disabled}
       onValueChange={(val) => onValueChange(val ?? '')}
       items={items.map((i) => i.id)}
     >
       <ComboboxTrigger
         className={cn(
-          'h-8 w-full flex justify-between items-center rounded-md border border-input bg-transparent px-3 text-sm',
+          'h-8 w-full flex justify-between items-center rounded-md border border-input bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60',
           className,
         )}
         aria-invalid={hasError}
+        disabled={disabled}
       >
         <ComboboxValue>
           {(val: string | null) => {
