@@ -5,10 +5,13 @@ const PublicLayout = () => {
   const user = useAppSelector((state) => state.user.user);
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from;
+  const redirectTo = from
+    ? `${from.pathname ?? '/'}${from.search ?? ''}${from.hash ?? ''}`
+    : '/';
 
   if (user) {
-    return <Navigate to={from} replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   return <Outlet />;

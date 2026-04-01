@@ -6,23 +6,23 @@ import TaskContentEditor from './TaskContentEditor';
 import TaskContentView from './TaskContentView';
 
 interface TaskMainContentProps {
-  userId: string;
   userName: string;
   createdAt: string;
   content: string;
   onSave: (content: string) => void;
   onDelete?: () => void | Promise<void>;
   isDeleting?: boolean;
+  canManageTask: boolean;
 }
 
 const TaskMainContent: React.FC<TaskMainContentProps> = ({
-  userId,
   userName,
   createdAt,
   content,
   onSave,
   onDelete,
   isDeleting = false,
+  canManageTask,
 }) => {
   console.log('TaskMainContent Rendered');
 
@@ -52,13 +52,13 @@ const TaskMainContent: React.FC<TaskMainContentProps> = ({
       </Avatar>
       <div className="flex-1 border-4 rounded-lg overflow-hidden">
         <TaskContentHeader
-          userId={userId}
           userName={userName}
           createdAt={createdAt}
           isComment={false}
           onEdit={() => setIsEdit(true)}
           onDelete={onDelete}
           isDeleting={isDeleting}
+          canManage={canManageTask}
         />
 
         {isEdit ? (

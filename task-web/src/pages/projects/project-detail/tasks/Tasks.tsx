@@ -13,11 +13,13 @@ import {
   type TaskSortBy,
   type TaskSortOrder,
 } from '@/store/api/taskApi';
+import { useAppSelector } from '@/store/hooks';
 import { columns } from './components/columns';
 import TaskFormModal from './components/TaskFormModal';
 
 const Tasks = () => {
   const { code } = useParams<{ code: string }>();
+  const currentUserId = useAppSelector((state) => state.user.user?.id);
 
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -184,6 +186,7 @@ const Tasks = () => {
       <DataTable
         columns={columns({
           projectCode: code!,
+          currentUserId,
           statuses,
           priorities,
           sortBy,

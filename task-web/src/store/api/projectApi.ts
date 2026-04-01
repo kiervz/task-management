@@ -36,6 +36,19 @@ type ProjectUpdateRequest = ProjectFormValues & { id: number | string };
 type ProjectMemberResponse = ApiResponse<
   Paginated<{ id: string; project_id: string; role: string; user: User }>
 >;
+type ConfirmProjectInviteAction = 'accept' | 'reject';
+type ProjectInviteResponse = ApiResponse<{
+  id: string;
+  project_code: string;
+  member_email: string;
+  role: string;
+  status: string;
+}>;
+type InviteProjectMemberRequest = {
+  projectCode: string;
+  member_email: string;
+  role: 'member' | 'admin';
+};
 
 export interface ProjectsQueryParams {
   page?: number;
@@ -125,8 +138,32 @@ export const projectApi = baseApi.injectEndpoints({
       query: (projectId) => ({
         url: `/projects/${projectId}/members`,
         method: 'GET',
+        params: {
+          per_page: 100,
+        },
       }),
       transformResponse: (res: ProjectMemberResponse) => res.response.data,
+    }),
+    inviteProjectMember: builder.mutation<
+      ProjectInviteResponse,
+      InviteProjectMemberRequest
+    >({
+      query: ({ projectCode, ...body }) => ({
+        url: `/projects/${projectCode}/invites`,
+        method: 'POST',
+        body,
+      }),
+    }),
+    confirmProjectInvite: builder.mutation<
+      ProjectInviteResponse,
+      { code: string; action: ConfirmProjectInviteAction }
+    >({
+      query: ({ code, action }) => ({
+        url: '/projects/invites/confirm',
+        method: 'POST',
+        params: { code, action },
+      }),
+      invalidatesTags: ['Projects'],
     }),
   }),
 });
@@ -138,4 +175,6 @@ export const {
   useProjectGetByCodeQuery,
   useProjectDeleteMutation,
   useProjectMembersQuery,
+  useInviteProjectMemberMutation,
+  useConfirmProjectInviteMutation,
 } = projectApi;

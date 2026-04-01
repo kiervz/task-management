@@ -52,7 +52,7 @@ export const commentsApi = baseApi.injectEndpoints({
       },
       forceRefetch: ({ currentArg, previousArg }) =>
         currentArg?.page !== previousArg?.page,
-      providesTags: (result, error, { taskId }) => [
+      providesTags: (_result, _error, { taskId }) => [
         { type: 'TaskComments', id: taskId },
       ],
     }),

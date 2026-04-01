@@ -1,6 +1,7 @@
 import React, { memo, useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAppSelector } from '@/store/hooks';
 import TaskContentHeader from './TaskContentHeader';
 import TaskContentEditor from './TaskContentEditor';
 import TaskContentView from './TaskContentView';
@@ -25,6 +26,7 @@ const TaskCommentContent: React.FC<TaskCommentContentProps> = ({
 }) => {
   console.log('Rendered TaskCommentContent');
 
+  const currentUser = useAppSelector((state) => state.user.user);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [contentValue, setContentValue] = useState<string>(content);
 
@@ -61,7 +63,7 @@ const TaskCommentContent: React.FC<TaskCommentContentProps> = ({
           isComment={true}
           onEdit={() => setIsEdit(true)}
           onDelete={handleDelete}
-          userId={userId}
+          canManage={currentUser?.id === userId}
         />
 
         {isEdit ? (

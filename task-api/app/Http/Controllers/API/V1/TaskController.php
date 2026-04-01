@@ -37,7 +37,7 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request, string $projectCode): JsonResponse
     {
         $project = $this->taskService->findProject($projectCode);
-        $this->authorize('update', $project);
+        $this->authorize('createTask', $project);
 
         $task = $this->taskService->createTask($project, $request->user(), $request->validated());
 
@@ -63,7 +63,7 @@ class TaskController extends Controller
     {
         $task = $this->taskService->findTaskById($taskId);
         $project = $task->project;
-        $this->authorize('update', $project);
+        $this->authorize('manageTask', [$project, $task]);
 
         $task = $this->taskService->updateTask($project, $taskId, $request->validated());
 
@@ -74,7 +74,7 @@ class TaskController extends Controller
     {
         $task = $this->taskService->findTaskById($taskId);
         $project = $task->project;
-        $this->authorize('update', $project);
+        $this->authorize('manageTask', [$project, $task]);
 
         $this->taskService->deleteTask($project, $taskId);
 
@@ -99,7 +99,7 @@ class TaskController extends Controller
     {
         $task = $this->taskService->findTaskById($taskId);
         $project = $task->project;
-        $this->authorize('update', $project);
+        $this->authorize('manageTask', [$project, $task]);
 
         $assignees = $this->taskService->assignTaskAssignees(
             $project,
@@ -118,7 +118,7 @@ class TaskController extends Controller
     {
         $task = $this->taskService->findTaskById($taskId);
         $project = $task->project;
-        $this->authorize('update', $project);
+        $this->authorize('manageTask', [$project, $task]);
 
         $this->taskService->unassignTaskAssignee($project, $taskId, $userId);
 

@@ -84,6 +84,7 @@ const baseQueryWithReauth: BaseQueryFn<
   if (
     result.error &&
     !extraOptions?.silent &&
+    !AUTH_ROUTES.some((route) => url.includes(route)) &&
     !AUTH_PAGES.has(globalThis.location.pathname)
   ) {
     handleApiError(result.error);

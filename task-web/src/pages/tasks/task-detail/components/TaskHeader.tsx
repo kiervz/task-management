@@ -37,8 +37,7 @@ interface TaskHeaderProps {
   onSave: (title: string) => void | Promise<void>;
   isSaving?: boolean;
   status: string;
-  userId: string;
-  user: User | null;
+  canManageTask: boolean;
 }
 
 const TaskHeader: React.FC<TaskHeaderProps> = ({
@@ -49,8 +48,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
   onSave,
   isSaving = false,
   status,
-  userId,
-  user,
+  canManageTask,
 }) => {
   const navigate = useNavigate();
   const [isEdit, setIsEdit] = useState<boolean>(false);
@@ -135,7 +133,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
               <h1 className="text-xl font-semibold truncate">{title}</h1>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              {user?.id === userId && (
+              {canManageTask && (
                 <Button
                   variant="outline"
                   size="default"

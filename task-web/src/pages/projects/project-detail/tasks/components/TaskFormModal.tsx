@@ -71,9 +71,6 @@ export default function TaskFormModal({
   const successMessage = isEditMode
     ? 'Task updated successfully!'
     : 'Task created successfully!';
-  const errorMessage = isEditMode
-    ? 'Failed to update task'
-    : 'Failed to create task';
 
   const { data: taskData, isLoading: isFetchingTask } = useTaskGetByTaskIdQuery(
     taskId!,
@@ -171,7 +168,6 @@ export default function TaskFormModal({
       reset();
       onOpenChange(false);
     } catch (error) {
-      toast.error(errorMessage);
       console.error('Failed to save task:', error);
     }
   };

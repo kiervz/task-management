@@ -37,6 +37,7 @@ import TaskInlineSelect from './TaskInlineSelect';
 
 type ColumnsArgs = {
   projectCode: string;
+  currentUserId?: string;
   statuses: TaskMeta[];
   priorities: TaskMeta[];
   sortBy: TaskSortBy;
@@ -52,6 +53,7 @@ type ColumnsArgs = {
 
 export const columns = ({
   projectCode,
+  currentUserId,
   statuses,
   priorities,
   sortBy,
@@ -98,7 +100,13 @@ export const columns = ({
     header: 'Status',
     cell: ({ row }) => {
       const task = row.original;
+      const canEditTask =
+        task.permissions?.can_manage ?? currentUserId === task.creator.id;
       const savingKey = `task-status-${task.id}`;
+
+      if (!canEditTask) {
+        return <div className="px-3">{task.status.name}</div>;
+      }
 
       return (
         <TaskInlineSelect
@@ -121,7 +129,13 @@ export const columns = ({
     header: 'Priority',
     cell: ({ row }) => {
       const task = row.original;
+      const canEditTask =
+        task.permissions?.can_manage ?? currentUserId === task.creator.id;
       const savingKey = `task-priority-${task.id}`;
+
+      if (!canEditTask) {
+        return <div className="px-3">{task.priority.name}</div>;
+      }
 
       return (
         <TaskInlineSelect
@@ -205,6 +219,12 @@ export const columns = ({
     id: 'actions',
     cell: ({ row }) => {
       const task = row.original;
+      const canEditTask =
+        task.permissions?.can_manage ?? currentUserId === task.creator.id;
+
+      if (!canEditTask) {
+        return null;
+      }
 
       return (
         <DropdownMenu>

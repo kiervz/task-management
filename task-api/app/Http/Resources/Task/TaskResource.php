@@ -23,12 +23,16 @@ class TaskResource extends JsonResource
             'due_date' => $this->due_date,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'comments_count' => $this->comments->count(),
             'creator' => new UserResource($this->whenLoaded('creator')),
             'project' => new TaskProjectResource($this->whenLoaded('project')),
             'type' => new TaskTypeResource($this->whenLoaded('type')),
             'status' => new TaskStatusResource($this->whenLoaded('status')),
             'priority' => new TaskPriorityResource($this->whenLoaded('priority')),
             'assignees' => TaskAssigneeResource::collection($this->whenLoaded('assignees')),
+            'permissions' => [
+                'can_manage' => $request->user()?->can('manageTask', [$this->project, $this->resource]) ?? false,
+            ],
         ];
     }
 }

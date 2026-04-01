@@ -21,31 +21,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAppSelector } from '@/store/hooks';
 import { formatRelativeDate } from '@/lib/formatDate';
 import { handleApiError } from '../../../../lib/apiErrorHandler';
 import { cn } from '../../../../lib/utils';
 
 interface TaskContentHeaderProps {
-  userId: string;
   userName: string;
   createdAt: string;
   isComment: boolean;
   onEdit: () => void;
   onDelete?: () => void | Promise<void>;
   isDeleting?: boolean;
+  canManage: boolean;
 }
 
 const TaskContentHeader: React.FC<TaskContentHeaderProps> = ({
-  userId,
   userName,
   createdAt,
   isComment,
   onEdit,
   onDelete,
   isDeleting = false,
+  canManage,
 }) => {
-  const user = useAppSelector((state) => state.user.user);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const itemLabel = isComment ? 'comment' : 'task';
   const deleteActionLabel = isComment ? 'Delete Comment' : 'Delete Task';
@@ -75,7 +73,7 @@ const TaskContentHeader: React.FC<TaskContentHeaderProps> = ({
         </span>
       </div>
 
-      {user?.id === userId && (
+      {canManage && (
         <DropdownMenu>
           <DropdownMenuTrigger
             render={<Button variant="ghost" className="h-8 w-8 p-0" />}

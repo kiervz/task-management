@@ -31,7 +31,7 @@ class TaskService
         $sortDir = $filters['sort_dir'] ?? 'desc';
 
         return $project->tasks()
-            ->with(['creator', 'type', 'status', 'priority', 'assignees.user'])
+            ->with(['creator', 'project', 'type', 'status', 'priority', 'assignees.user'])
             ->when($taskTypes !== [], function ($query) use ($taskTypes) {
                 $query->whereHas('type', fn ($q) => $q->whereIn('code', $taskTypes));
             })

@@ -42,4 +42,7 @@ export interface Task {
   comments_count: number;
   project: Project;
   assignees: Assignee[];
+  permissions?: {
+    can_manage: boolean;
+  };
 }

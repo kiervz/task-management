@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\Task;
 use App\Models\User;
 
 class ProjectPolicy
@@ -36,6 +37,20 @@ class ProjectPolicy
     public function transferOwnership(User $user, Project $project): bool
     {
         return $project->user_id === $user->id;
+    }
+
+    public function createTask(User $user, Project $project): bool
+    {
+        return $this->isProjectMember($user, $project);
+    }
+
+    public function manageTask(User $user, Project $project, Task $task): bool
+    {
+        if ($task->project_id !== $project->id) {
+            return false;
+        }
+
+        return $this->isProjectAdmin($user, $project) || $task->created_by === $user->id;
     }
 
     private function isProjectAdmin(User $user, Project $project): bool

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -32,6 +32,7 @@ import AlertMessage from '@/components/ui/alert-message';
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const [login, { isLoading, error }] = useLoginMutation();
   const [socialProvider, setSocialProvider] = useState<OAuthProvider | null>(
@@ -51,12 +52,17 @@ const LoginForm = () => {
     mode: 'onSubmit',
   });
 
+  const from = location.state?.from;
+  const fromUrl = from
+    ? `${from.pathname ?? '/'}${from.search ?? ''}${from.hash ?? ''}`
+    : '/';
+
   const onSubmit = async (values: LoginFormValues) => {
     try {
       const data = await login(values).unwrap();
       dispatch(setAccessToken(data.response.access_token));
       dispatch(setUser(data.response.user));
-      navigate('/');
+      navigate(fromUrl, { replace: true });
     } catch (err) {
       const fetchError = err as {
         status?: number;

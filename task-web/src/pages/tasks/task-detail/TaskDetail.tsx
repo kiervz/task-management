@@ -52,6 +52,9 @@ const TaskDetail = () => {
 
   const taskData = data?.response;
   const hasMore = commentPage < (commentsData?.meta?.last_page ?? 1);
+  const canManageTask =
+    taskData?.permissions?.can_manage ??
+    (!!user && user.id === taskData?.creator.id);
 
   const { ref: sentinelRef } = useInView({
     threshold: 0.1,
@@ -248,19 +251,18 @@ const TaskDetail = () => {
         onSave={handleUpdateTitle}
         isSaving={isUpdatingTitle}
         status={taskData.status.name}
-        userId={taskData.creator.id}
-        user={user}
+        canManageTask={canManageTask}
       />
       <div className="flex flex-col lg:flex-row gap-4 px-4 sm:px-6 py-6 max-w-7xl mx-auto">
         <div className="flex-1 min-w-0 flex flex-col">
           <TaskMainContent
-            userId={taskData.creator.id}
             userName={taskData.creator.name}
             createdAt={taskData.created_at}
             content={taskData.description}
             onSave={handleUpdateDescription}
             onDelete={handleDeleteTask}
             isDeleting={isDeletingTask}
+            canManageTask={canManageTask}
           />
 
           {/* Comments */}

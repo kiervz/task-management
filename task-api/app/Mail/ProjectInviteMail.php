@@ -54,11 +54,10 @@ class ProjectInviteMail extends Mailable
 
     private function buildConfirmUrl(string $action): string
     {
-        $baseUrl = rtrim((string) config('app.url'), '/').'/api/v1/projects/invites/confirm';
+        $baseUrl = rtrim((string) config('app.frontend_url'), '/')."/invites/{$action}";
 
         return $baseUrl.'?'.http_build_query([
             'code' => $this->projectCode,
-            'action' => $action,
         ]);
     }
 }

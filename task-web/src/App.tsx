@@ -20,6 +20,7 @@ const ResetPassword = lazy(
   () => import('./pages/forgot-password/reset/ResetPassword'),
 );
 const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
+const InviteDecision = lazy(() => import('./pages/invites/InviteDecision'));
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 const Projects = lazy(() => import('./pages/projects/Projects'));
 const ProjectDetail = lazy(
@@ -45,6 +46,14 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Route>
           <Route element={<PrivateLayout />}>
+            <Route
+              path="/invites/accept"
+              element={<InviteDecision action="accept" />}
+            />
+            <Route
+              path="/invites/reject"
+              element={<InviteDecision action="reject" />}
+            />
             <Route path="/" element={<AppLayout />}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/projects" element={<Projects />} />

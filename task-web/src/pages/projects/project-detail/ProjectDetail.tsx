@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Tasks from './tasks/Tasks';
 import TaskFormModal from './tasks/components/TaskFormModal';
+import Settings from './settings/Settings';
 
 const ProjectDetail = () => {
   console.log('ProjectDetail Rendered');
@@ -122,7 +123,7 @@ const ProjectDetail = () => {
             {value === 'calendar' && <>Calendar Component</>}
             {value === 'analytics' && <>Analytics Component</>}
             {value === 'reports' && <>Reports Component</>}
-            {value === 'settings' && <>Settings Component</>}
+            {value === 'settings' && <Settings projectCode={project.code} />}
           </TabsContent>
         ))}
       </Tabs>
