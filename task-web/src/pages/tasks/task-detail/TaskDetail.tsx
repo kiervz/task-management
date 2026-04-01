@@ -1,34 +1,66 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 import { ArrowLeft, FileSearch } from 'lucide-react';
+import { toast } from 'sonner';
+import { useInView } from 'react-intersection-observer';
 
 import { Spinner } from '@/components/ui/spinner';
-import { useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
   useTaskGetByTaskIdQuery,
   useTaskUpdateMutation,
   useTaskDeleteMutation,
 } from '@/store/api/taskApi';
+import {
+  useCommentDeleteMutation,
+  useCommentAddMutation,
+  useCommentsByTaskIdQuery,
+  useCommentUpdateMutation,
+  commentsApi,
+} from '@/store/api/commentApi';
 import { handleApiError } from '@/lib/apiErrorHandler';
+import { Button } from '@/components/ui/button';
 import TaskHeader from './components/TaskHeader';
 import TaskMainContent from './components/TaskMainContent';
 import FetchErrorAlert from '@/components/errors/FetchErrorAlert';
-import { Button } from '@/components/ui/button';
+import TaskCommentBox from './components/TaskCommentBox';
+import { Separator } from '@/components/ui/separator';
+import type { Comment } from '@/@types/comment';
+import TaskCommentContent from './components/TaskCommentContent';
 
 const TaskDetail = () => {
   console.log('TaskDetail Rendered');
   const navigate = useNavigate();
-  const { taskCode } = useParams<{ taskCode: string }>();
+  const { taskId } = useParams<{ taskId: string }>();
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user.user);
+  const [commentPage, setCommentPage] = useState<number>(1);
+
   const [taskUpdate, { isLoading: isUpdatingTitle }] = useTaskUpdateMutation();
   const [taskDelete, { isLoading: isDeletingTask }] = useTaskDeleteMutation();
-
+  const {
+    data: commentsData,
+    isLoading: isLoadingComments,
+    isFetching: isFetchingComments,
+  } = useCommentsByTaskIdQuery({ taskId: taskId!, page: commentPage });
+  const [commentAdd] = useCommentAddMutation();
+  const [commentUpdate] = useCommentUpdateMutation();
+  const [commentDelete] = useCommentDeleteMutation();
   const { data, isLoading, isError, error, refetch } = useTaskGetByTaskIdQuery(
-    taskCode ?? '',
+    taskId ?? '',
   );
 
   const taskData = data?.response;
+  const hasMore = commentPage < (commentsData?.meta?.last_page ?? 1);
+
+  const { ref: sentinelRef } = useInView({
+    threshold: 0.1,
+    onChange: (inView) => {
+      if (inView && hasMore && !isFetchingComments) {
+        setCommentPage((prev) => prev + 1);
+      }
+    },
+  });
 
   const handleUpdateTitle = useCallback(
     async (title: string) => {
@@ -71,6 +103,99 @@ const TaskDetail = () => {
       handleApiError(err);
     }
   }, [taskData, taskDelete, navigate]);
+
+  const handleSubmitComment = useCallback(
+    async (value: string) => {
+      if (!taskId || !user) return;
+
+      const tempId = Date.now();
+
+      const patch = dispatch(
+        commentsApi.util.updateQueryData(
+          'commentsByTaskId',
+          { taskId },
+          (draft) => {
+            draft.comments.push({
+              id: tempId,
+              issue_id: taskId,
+              content: value,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              user,
+            } as unknown as Comment);
+          },
+        ),
+      );
+
+      try {
+        const result = await commentAdd({ taskId, content: value }).unwrap();
+
+        dispatch(
+          commentsApi.util.updateQueryData(
+            'commentsByTaskId',
+            { taskId },
+            (draft) => {
+              const target = draft.comments.find((c) => c.id === tempId);
+              if (target) {
+                target.id = result.response.id;
+              }
+            },
+          ),
+        );
+      } catch {
+        patch.undo();
+      }
+    },
+    [commentAdd, dispatch, taskId, user],
+  );
+
+  const handleUpdateComment = useCallback(
+    async (commentId: string | number, comment: string) => {
+      const patch = dispatch(
+        commentsApi.util.updateQueryData(
+          'commentsByTaskId',
+          { taskId: taskId! },
+          (draft) => {
+            const target = draft.comments.find((c) => c.id === commentId);
+            if (target) {
+              target.content = comment;
+            }
+          },
+        ),
+      );
+
+      try {
+        await commentUpdate({ commentId, content: comment }).unwrap();
+      } catch {
+        patch.undo();
+      }
+    },
+    [commentUpdate, dispatch, taskId],
+  );
+
+  const handleDeleteComment = useCallback(
+    async (commentId: string | number) => {
+      const patch = dispatch(
+        commentsApi.util.updateQueryData(
+          'commentsByTaskId',
+          { taskId: taskId! },
+          (draft) => {
+            const index = draft.comments.findIndex((c) => c.id === commentId);
+            if (index !== -1) {
+              draft.comments.splice(index, 1);
+            }
+          },
+        ),
+      );
+
+      try {
+        await commentDelete({ commentId }).unwrap();
+      } catch {
+        patch.undo();
+      }
+    },
+    [commentDelete, dispatch, taskId],
+  );
 
   if (isLoading) {
     return (
@@ -119,8 +244,10 @@ const TaskDetail = () => {
         projectCode={taskData.project.code}
         title={taskData.title}
         isDone={taskData.status.is_done === true}
+        assignees={taskData.assignees.map((assignee) => assignee.user)}
         onSave={handleUpdateTitle}
         isSaving={isUpdatingTitle}
+        status={taskData.status.name}
         userId={taskData.creator.id}
         user={user}
       />
@@ -135,6 +262,56 @@ const TaskDetail = () => {
             onDelete={handleDeleteTask}
             isDeleting={isDeletingTask}
           />
+
+          {/* Comments */}
+          {isLoadingComments && commentPage === 1 ? (
+            <div className="pl-20 py-4">
+              <Spinner className="size-4" />
+            </div>
+          ) : (
+            <>
+              {commentsData?.comments.map((comment) => (
+                <div key={comment.id}>
+                  <div className="pl-20 h-5">
+                    <Separator
+                      orientation="vertical"
+                      className="w-0.5! bg-border/90"
+                    />
+                  </div>
+
+                  <TaskCommentContent
+                    id={comment.id}
+                    userId={comment.user.id}
+                    username={comment.user.name}
+                    createdAt={comment.created_at}
+                    content={comment.content}
+                    onSave={handleUpdateComment}
+                    onDelete={handleDeleteComment}
+                  />
+                </div>
+              ))}
+
+              <div className="pl-20 h-5">
+                <Separator
+                  orientation="vertical"
+                  className="w-0.5! bg-border/90"
+                />
+              </div>
+
+              {/* Infinite scroll sentinel */}
+              <div ref={sentinelRef} className="mx-auto">
+                {isFetchingComments && (
+                  <div className="py-8">
+                    <Spinner className="size-4" />
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {user && (
+            <TaskCommentBox user={user} onSubmit={handleSubmitComment} />
+          )}
         </div>
       </div>
     </div>

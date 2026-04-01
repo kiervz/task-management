@@ -24,8 +24,9 @@ import {
 import { useAppSelector } from '@/store/hooks';
 import { formatRelativeDate } from '@/lib/formatDate';
 import { handleApiError } from '../../../../lib/apiErrorHandler';
+import { cn } from '../../../../lib/utils';
 
-interface IssueContentHeaderProps {
+interface TaskContentHeaderProps {
   userId: string;
   userName: string;
   createdAt: string;
@@ -35,7 +36,7 @@ interface IssueContentHeaderProps {
   isDeleting?: boolean;
 }
 
-const IssueContentHeader: React.FC<IssueContentHeaderProps> = ({
+const TaskContentHeader: React.FC<TaskContentHeaderProps> = ({
   userId,
   userName,
   createdAt,
@@ -46,6 +47,8 @@ const IssueContentHeader: React.FC<IssueContentHeaderProps> = ({
 }) => {
   const user = useAppSelector((state) => state.user.user);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
+  const itemLabel = isComment ? 'comment' : 'task';
+  const deleteActionLabel = isComment ? 'Delete Comment' : 'Delete Task';
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -59,7 +62,12 @@ const IssueContentHeader: React.FC<IssueContentHeaderProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between bg-muted/40 px-4 py-2.5 border-b">
+    <div
+      className={cn(
+        'flex items-center justify-between px-4 py-2.5 border-b',
+        isComment ? 'bg-muted/40' : 'bg-muted',
+      )}
+    >
       <div className="flex items-center gap-2 text-sm">
         <span className="font-medium">{userName}</span>
         <span className="text-muted-foreground">
@@ -104,10 +112,10 @@ const IssueContentHeader: React.FC<IssueContentHeaderProps> = ({
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this task?</AlertDialogTitle>
+            <AlertDialogTitle>Delete this {itemLabel}?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete this
-              task.
+              {itemLabel}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -117,7 +125,7 @@ const IssueContentHeader: React.FC<IssueContentHeaderProps> = ({
               disabled={isDeleting}
               variant="destructive"
             >
-              {isDeleting ? 'Deleting...' : 'Delete Task'}
+              {isDeleting ? 'Deleting...' : deleteActionLabel}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -126,4 +134,4 @@ const IssueContentHeader: React.FC<IssueContentHeaderProps> = ({
   );
 };
 
-export default IssueContentHeader;
+export default TaskContentHeader;

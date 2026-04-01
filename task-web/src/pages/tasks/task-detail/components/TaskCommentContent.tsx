@@ -1,30 +1,29 @@
-import { memo, useState } from 'react';
+import React, { memo, useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import TaskContentHeader from './TaskContentHeader';
 import TaskContentEditor from './TaskContentEditor';
 import TaskContentView from './TaskContentView';
 
-interface TaskMainContentProps {
+interface TaskCommentContentProps {
+  id: string | number;
   userId: string;
-  userName: string;
+  username: string;
   createdAt: string;
   content: string;
-  onSave: (content: string) => void;
-  onDelete?: () => void | Promise<void>;
-  isDeleting?: boolean;
+  onSave: (commentId: string | number, comment: string) => void;
+  onDelete: (commentId: string | number) => void;
 }
-
-const TaskMainContent: React.FC<TaskMainContentProps> = ({
+const TaskCommentContent: React.FC<TaskCommentContentProps> = ({
+  id,
   userId,
-  userName,
+  username,
   createdAt,
   content,
   onSave,
   onDelete,
-  isDeleting = false,
 }) => {
-  console.log('TaskMainContent Rendered');
+  console.log('Rendered TaskCommentContent');
 
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [contentValue, setContentValue] = useState<string>(content);
@@ -39,26 +38,30 @@ const TaskMainContent: React.FC<TaskMainContentProps> = ({
       setIsEdit(false);
       return;
     }
-    onSave(contentValue.trim());
+    onSave(id, contentValue.trim());
     setIsEdit(false);
+  };
+
+  const handleDelete = () => {
+    onDelete(id);
   };
 
   return (
     <div className="flex gap-3">
       <Avatar className="size-8">
         <AvatarFallback className="text-sm">
-          {userName[0].toUpperCase() ?? 'U'}
+          {username[0].toUpperCase() ?? 'U'}
         </AvatarFallback>
       </Avatar>
-      <div className="flex-1 border-4 rounded-lg overflow-hidden">
+
+      <div className="flex-1 border rounded-lg overflow-hidden">
         <TaskContentHeader
-          userId={userId}
-          userName={userName}
+          userName={username}
           createdAt={createdAt}
-          isComment={false}
+          isComment={true}
           onEdit={() => setIsEdit(true)}
-          onDelete={onDelete}
-          isDeleting={isDeleting}
+          onDelete={handleDelete}
+          userId={userId}
         />
 
         {isEdit ? (
@@ -69,11 +72,11 @@ const TaskMainContent: React.FC<TaskMainContentProps> = ({
             onSave={handleSave}
           />
         ) : (
-          <TaskContentView content={contentValue} isComment={false} />
+          <TaskContentView content={contentValue} isComment={true} />
         )}
       </div>
     </div>
   );
 };
 
-export default memo(TaskMainContent);
+export default memo(TaskCommentContent);

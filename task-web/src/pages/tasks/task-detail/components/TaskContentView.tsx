@@ -1,12 +1,12 @@
 import { RichContent } from '@/components/ui/rich-content';
 import { cn } from '@/lib/utils';
 
-interface IssueContentViewProps {
+interface TaskContentViewProps {
   content: string;
   isComment: boolean;
 }
 
-const IssueContentView: React.FC<IssueContentViewProps> = ({
+const TaskContentView: React.FC<TaskContentViewProps> = ({
   content,
   isComment,
 }) => {
@@ -17,4 +17,4 @@ const IssueContentView: React.FC<IssueContentViewProps> = ({
   );
 };
 
-export default IssueContentView;
+export default TaskContentView;

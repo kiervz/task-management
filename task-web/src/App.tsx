@@ -50,7 +50,7 @@ function App() {
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:code" element={<ProjectDetail />} />
               <Route
-                path="/projects/:projectCode/tasks/:taskCode"
+                path="/projects/:projectCode/tasks/:taskId"
                 element={<TaskDetail />}
               />
             </Route>

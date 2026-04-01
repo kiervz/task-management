@@ -1,14 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { MinimalTiptap } from '@/components/ui/minimal-tiptap';
 
-interface IssueContentEditorProps {
+interface TaskContentEditorProps {
   value: string;
   onChange: (val: string) => void;
   onCancel: () => void;
   onSave: () => void;
 }
 
-const IssueContentEditor: React.FC<IssueContentEditorProps> = ({
+const TaskContentEditor: React.FC<TaskContentEditorProps> = ({
   value,
   onChange,
   onCancel,
@@ -33,4 +33,4 @@ const IssueContentEditor: React.FC<IssueContentEditorProps> = ({
   );
 };
 
-export default IssueContentEditor;
+export default TaskContentEditor;
