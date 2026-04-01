@@ -125,7 +125,58 @@ export const projectApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body,
       }),
-      invalidatesTags: ['Projects'],
+      async onQueryStarted(
+        { id, ...patch },
+        { dispatch, getState, queryFulfilled },
+      ) {
+        const cachedArgs = projectApi.util.selectCachedArgsForQuery(
+          getState(),
+          'projects',
+        );
+
+        const listPatchResults = cachedArgs.map((args) =>
+          dispatch(
+            projectApi.util.updateQueryData('projects', args, (draft) => {
+              const project = draft.projects.find((p) => p.code === id);
+              if (!project) return;
+              if (patch.status !== undefined) project.status = patch.status;
+              if (patch.priority !== undefined)
+                project.priority = patch.priority;
+            }),
+          ),
+        );
+
+        const detailPatchResult = dispatch(
+          projectApi.util.updateQueryData('projectGetByCode', id, (draft) => {
+            if (patch.status !== undefined)
+              draft.response.status = patch.status;
+            if (patch.priority !== undefined)
+              draft.response.priority = patch.priority;
+          }),
+        );
+
+        try {
+          const { data } = await queryFulfilled;
+
+          cachedArgs.forEach((args) => {
+            dispatch(
+              projectApi.util.updateQueryData('projects', args, (draft) => {
+                const index = draft.projects.findIndex((p) => p.code === id);
+                if (index >= 0) draft.projects[index] = data.response;
+              }),
+            );
+          });
+
+          dispatch(
+            projectApi.util.updateQueryData('projectGetByCode', id, (draft) => {
+              draft.response = data.response;
+            }),
+          );
+        } catch {
+          listPatchResults.forEach((result) => result.undo());
+          detailPatchResult.undo();
+        }
+      },
     }),
     projectDelete: builder.mutation<void, number | string>({
       query: (id) => ({ url: `/projects/${id}`, method: 'DELETE' }),

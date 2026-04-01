@@ -61,7 +61,7 @@ class ProjectService
 
     public function findProject(string $projectCode): Project
     {
-        $project = Project::with(['user', 'members'])
+        $project = Project::with(['user', 'members', 'tasks', 'tasks.status', 'members'])
             ->where('code', $projectCode)
             ->first();
 

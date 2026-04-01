@@ -18,10 +18,30 @@ import {
   ColumnHeader,
   type SortOrder,
 } from '@/components/data-table/column-header';
+import ProjectInlineSelect, {
+  type InlineSelectOption,
+} from './ProjectInlineSelect';
+import { formatDate } from '@/lib/formatDate';
+
+const STATUS_OPTIONS: InlineSelectOption[] = [
+  { value: 'planning', label: 'Planning' },
+  { value: 'active', label: 'Active' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'on_hold', label: 'On Hold' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
+
+const PRIORITY_OPTIONS: InlineSelectOption[] = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+];
 
 type ColumnsArgs = {
   sortBy: ProjectSortBy;
   sortOrder: SortOrder;
+  inlineSavingKeys: Set<string>;
+  onInlineSavingChange: (key: string, isSaving: boolean) => void;
   onSortChange: (
     sortBy: ProjectSortBy | null,
     sortOrder: SortOrder | null,
@@ -34,6 +54,8 @@ type ColumnsArgs = {
 export const columns = ({
   sortBy,
   sortOrder,
+  inlineSavingKeys,
+  onInlineSavingChange,
   onSortChange,
   onView,
   onEdit,
@@ -71,12 +93,66 @@ export const columns = ({
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => row.original.status,
+    cell: ({ row }) => {
+      const project = row.original;
+      const canManage = project.permissions?.can_manage ?? false;
+      const savingKey = `project-status-${project.id}`;
+
+      if (!canManage) {
+        return (
+          <div className="px-3">
+            {STATUS_OPTIONS.find((s) => s.value === project.status)?.label ??
+              project.status}
+          </div>
+        );
+      }
+
+      return (
+        <ProjectInlineSelect
+          project={project}
+          field="status"
+          value={project.status}
+          options={STATUS_OPTIONS}
+          placeholder="Select status"
+          savingLabel="Status"
+          savingKey={savingKey}
+          isSaving={inlineSavingKeys.has(savingKey)}
+          onSavingChange={onInlineSavingChange}
+        />
+      );
+    },
   },
   {
     accessorKey: 'priority',
     header: 'Priority',
-    cell: ({ row }) => row.original.priority,
+    cell: ({ row }) => {
+      const project = row.original;
+      const canManage = project.permissions?.can_manage ?? false;
+      const savingKey = `project-priority-${project.id}`;
+
+      if (!canManage) {
+        return (
+          <div className="px-3">
+            {PRIORITY_OPTIONS.find((p) => p.value === project.priority)
+              ?.label ?? project.priority}
+          </div>
+        );
+      }
+
+      return (
+        <ProjectInlineSelect
+          project={project}
+          field="priority"
+          value={project.priority}
+          options={PRIORITY_OPTIONS}
+          placeholder="Select priority"
+          savingLabel="Priority"
+          savingKey={savingKey}
+          isSaving={inlineSavingKeys.has(savingKey)}
+          onSavingChange={onInlineSavingChange}
+        />
+      );
+    },
   },
   {
     accessorKey: 'start_date',
@@ -90,7 +166,7 @@ export const columns = ({
         onSortChange={onSortChange}
       />
     ),
-    cell: ({ row }) => row.original.start_date?.slice(0, 10) ?? '—',
+    cell: ({ row }) => formatDate(row.original.start_date),
   },
   {
     accessorKey: 'end_date',
@@ -104,12 +180,13 @@ export const columns = ({
         onSortChange={onSortChange}
       />
     ),
-    cell: ({ row }) => row.original.end_date?.slice(0, 10) ?? '—',
+    cell: ({ row }) => formatDate(row.original.end_date),
   },
   {
     id: 'actions',
     cell: ({ row }) => {
       const project = row.original;
+      const canManage = project.permissions?.can_manage ?? false;
 
       return (
         <DropdownMenu>
@@ -131,23 +208,27 @@ export const columns = ({
                 View
               </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={() => onEdit(project.code)}
-                className="flex items-center gap-2"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
+              {canManage && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => onEdit(project.code)}
+                    className="flex items-center gap-2"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+                  <DropdownMenuSeparator />
 
-              <DropdownMenuItem
-                onClick={() => onDelete(project.code, project.name)}
-                className="flex items-center gap-2 text-red-600 focus:text-red-600"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onDelete(project.code, project.name)}
+                    className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>

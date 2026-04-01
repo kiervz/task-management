@@ -12,9 +12,11 @@ export interface Project {
   created_by: User;
   total_tasks: number;
   completed_tasks: number;
-  in_progress_tasks: number;
-  team_members: number;
+  overdue_tasks: number;
+  total_members: number;
+  permissions?: {
+    can_manage: boolean;
+  };
   created_at: string;
   updated_at: string;
-  deleted_at: boolean;
 }

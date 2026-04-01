@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, type Middleware } from '@reduxjs/toolkit';
 import {
   persistStore,
   persistReducer,
@@ -11,7 +11,7 @@ import {
 } from 'redux-persist';
 
 import { baseApi } from './api/baseApi';
-import userReducer from './slices/userSlice';
+import userReducer, { clearUser, setUser } from './slices/userSlice';
 import otpReducer from './slices/otpSlice';
 
 const storageSession = {
@@ -36,6 +36,22 @@ const otpPersistConfig = {
 
 const persistedOtpReducer = persistReducer(otpPersistConfig, otpReducer);
 
+const resetApiCacheOnLogout: Middleware = (storeApi) => (next) => (action) => {
+  const prevUserId = (storeApi.getState() as RootState).user.user?.id;
+  const result = next(action);
+  const nextUserId = (storeApi.getState() as RootState).user.user?.id;
+
+  if (clearUser.match(action)) {
+    storeApi.dispatch(baseApi.util.resetApiState());
+  }
+
+  if (setUser.match(action) && prevUserId && prevUserId !== nextUserId) {
+    storeApi.dispatch(baseApi.util.resetApiState());
+  }
+
+  return result;
+};
+
 export const store = configureStore({
   reducer: {
     user: userReducer,
@@ -47,7 +63,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(baseApi.middleware),
+    }).concat(baseApi.middleware, resetApiCacheOnLogout),
 });
 
 export const persistor = persistStore(store);

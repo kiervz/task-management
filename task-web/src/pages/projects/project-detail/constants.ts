@@ -1,12 +1,12 @@
 import {
   Layers,
   CheckCircle,
-  LoaderCircle,
   Users,
   ClipboardCheck,
   Settings,
   Calendar1,
   ChartColumn,
+  CalendarX,
 } from 'lucide-react';
 
 export const STAT_CARDS = [
@@ -21,13 +21,13 @@ export const STAT_CARDS = [
     icon: CheckCircle,
   },
   {
-    value: 'in_progress_tasks',
-    label: 'In Progress',
-    icon: LoaderCircle,
+    value: 'overdue_tasks',
+    label: 'Overdue Tasks',
+    icon: CalendarX,
   },
   {
-    value: 'team_members',
-    label: 'Team Members',
+    value: 'total_members',
+    label: 'Total Members',
     icon: Users,
   },
 ] as const;

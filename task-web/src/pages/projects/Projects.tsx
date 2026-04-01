@@ -40,6 +40,24 @@ const Projects = () => {
   >();
   const [isOpenProjectModal, setIsOpenProjectModal] = useState<boolean>(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState<boolean>(false);
+  const [inlineSavingKeys, setInlineSavingKeys] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const handleInlineSavingChange = useCallback(
+    (key: string, isSaving: boolean) => {
+      setInlineSavingKeys((prev) => {
+        const next = new Set(prev);
+        if (isSaving) {
+          next.add(key);
+        } else {
+          next.delete(key);
+        }
+        return next;
+      });
+    },
+    [],
+  );
 
   const columnFilters: ColumnFiltersState = useMemo(
     () => [
@@ -135,6 +153,8 @@ const Projects = () => {
       columns({
         sortBy,
         sortOrder,
+        inlineSavingKeys,
+        onInlineSavingChange: handleInlineSavingChange,
         onSortChange,
         onView: handleViewProject,
         onEdit: handleUpdateProject,
@@ -143,6 +163,8 @@ const Projects = () => {
     [
       sortBy,
       sortOrder,
+      inlineSavingKeys,
+      handleInlineSavingChange,
       onSortChange,
       handleViewProject,
       handleUpdateProject,

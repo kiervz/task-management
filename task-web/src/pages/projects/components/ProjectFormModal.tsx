@@ -43,11 +43,25 @@ const STATUS_OPTIONS = [
   'planning',
   'active',
   'completed',
-  'on hold',
+  'on_hold',
   'cancelled',
 ] as const;
 
+const STATUS_LABELS: Record<(typeof STATUS_OPTIONS)[number], string> = {
+  planning: 'Planning',
+  active: 'Active',
+  completed: 'Completed',
+  on_hold: 'On Hold',
+  cancelled: 'Cancelled',
+};
+
 const PRIORITY_OPTIONS = ['low', 'medium', 'high'] as const;
+
+const PRIORITY_LABELS: Record<(typeof PRIORITY_OPTIONS)[number], string> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+};
 
 const DEFAULT_VALUES: ProjectFormValues = {
   name: '',
@@ -201,13 +215,15 @@ export default function ProjectFormModal({
                     }
                   >
                     <SelectTrigger id="status" aria-invalid={!!errors.status}>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder="Select status">
+                        {statusValue ? STATUS_LABELS[statusValue] : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         {STATUS_OPTIONS.map((s) => (
                           <SelectItem key={s} value={s}>
-                            {s}
+                            {STATUS_LABELS[s]}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -238,13 +254,17 @@ export default function ProjectFormModal({
                       id="priority"
                       aria-invalid={!!errors.priority}
                     >
-                      <SelectValue placeholder="Select priority" />
+                      <SelectValue placeholder="Select priority">
+                        {priorityValue
+                          ? PRIORITY_LABELS[priorityValue]
+                          : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         {PRIORITY_OPTIONS.map((p) => (
                           <SelectItem key={p} value={p}>
-                            {p}
+                            {PRIORITY_LABELS[p]}
                           </SelectItem>
                         ))}
                       </SelectGroup>

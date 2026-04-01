@@ -1,12 +1,6 @@
-import {
-  GalleryVerticalEndIcon,
-  LayoutDashboard,
-  Layers,
-  Apple,
-} from 'lucide-react';
+import { GalleryVerticalEndIcon, LayoutDashboard, Layers } from 'lucide-react';
 
 import { NavMain } from '@/components/nav-main';
-import { NavProjects } from '@/components/nav-projects';
 import {
   Sidebar,
   SidebarContent,
@@ -21,24 +15,6 @@ export type NavItem = {
   icon?: React.ReactNode;
   isActive?: boolean;
 };
-
-const projects = [
-  {
-    name: 'Youtube Web Application',
-    url: '/projects/youtube',
-    icon: <Apple />,
-  },
-  {
-    name: 'Udemy Web Application',
-    url: '/projects/udemy',
-    icon: <Apple />,
-  },
-  {
-    name: 'E-commerce Web Application',
-    url: '/projects/ecommerce',
-    icon: <Apple />,
-  },
-];
 
 const navMain: Array<NavItem> = [
   {
@@ -68,7 +44,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavProjects projects={projects} />
       </SidebarContent>
 
       <SidebarRail />
