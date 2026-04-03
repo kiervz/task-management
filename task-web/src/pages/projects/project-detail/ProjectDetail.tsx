@@ -10,6 +10,8 @@ import { useProjectGetByCodeQuery } from '@/store/api/projectApi';
 import { STAT_CARDS, TAB_LIST } from './constants';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setProject, setProjectStats } from '@/store/slices/projectSlice';
 import Tasks from './tasks/Tasks';
 import TaskFormModal from './tasks/components/TaskFormModal';
 import Settings from './settings/Settings';
@@ -20,6 +22,8 @@ const ProjectDetail = () => {
   const { code } = useParams<{ code: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
+  const dispatch = useAppDispatch();
+  const projectStats = useAppSelector((state) => state.project.stats);
 
   const currentTab = searchParams.get('tab') ?? TAB_LIST[0].value;
   const isAddTaskParam = searchParams.get('addTask') === 'true';
@@ -52,15 +56,49 @@ const ProjectDetail = () => {
     }
   }, [isError, error, navigate]);
 
-  if (isLoading || isFetching || !data?.response) {
+  const project = data?.response;
+
+  useEffect(() => {
+    if (!project) {
+      return;
+    }
+
+    dispatch(
+      setProject({
+        code: project.code,
+        name: project.name,
+      }),
+    );
+
+    dispatch(
+      setProjectStats({
+        projectCode: project.code,
+        stats: {
+          total_tasks: project.total_tasks,
+          completed_tasks: project.completed_tasks,
+          overdue_tasks: project.overdue_tasks,
+          total_members: project.total_members,
+        },
+      }),
+    );
+  }, [
+    dispatch,
+    project,
+    project?.code,
+    project?.name,
+    project?.total_tasks,
+    project?.completed_tasks,
+    project?.overdue_tasks,
+    project?.total_members,
+  ]);
+
+  if (isLoading || isFetching || !project) {
     return (
       <div className="flex items-center justify-center h-full py-24">
         <Spinner className="size-6" />
       </div>
     );
   }
-
-  const project = data.response;
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,7 +132,9 @@ const ProjectDetail = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <span className="text-2xl font-bold">{project[value] ?? 0}</span>
+              <span className="text-2xl font-bold">
+                {projectStats[value] ?? project[value] ?? 0}
+              </span>
             </CardContent>
           </Card>
         ))}

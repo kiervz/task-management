@@ -16,7 +16,7 @@ import {
   type ProjectPriority,
 } from '@/store/api/projectApi';
 import { useAppDispatch } from '@/store/hooks';
-import { setProjectCode, setProjectName } from '@/store/slices/projectSlice';
+import { setProject } from '@/store/slices/projectSlice';
 import { columns } from './components/columns';
 import { FACETED_FILTERS } from './constants';
 
@@ -131,8 +131,7 @@ const Projects = () => {
 
   const handleViewProject = useCallback(
     (code: string, name: string) => {
-      dispatch(setProjectCode(code));
-      dispatch(setProjectName(name));
+      dispatch(setProject({ code, name }));
       navigate(`/projects/${code}?tab=tasks`);
     },
     [dispatch, navigate],

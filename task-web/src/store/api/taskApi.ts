@@ -2,6 +2,11 @@ import type { ApiResponse } from '@/@types/apiResponse';
 import type { Paginated, PaginationMeta } from '@/@types/paginated';
 import type { Task, TaskType, TaskStatus, TaskPriority } from '@/@types/task';
 import { baseApi } from './baseApi';
+import {
+  applyTaskCreatedStats,
+  applyTaskDeletedStats,
+  applyTaskTransitionStats,
+} from '../slices/projectSlice';
 
 export type TaskSortBy =
   | 'title'
@@ -35,6 +40,28 @@ const extractCatalogItems = <T>(
   }
 
   return payload?.data ?? [];
+};
+
+type TaskStatsSnapshot = {
+  due_date?: string | null;
+  status?: {
+    is_done: boolean;
+  } | null;
+};
+
+const toTaskStatsSnapshot = (
+  task: Task | null | undefined,
+): TaskStatsSnapshot | null => {
+  if (!task) {
+    return null;
+  }
+
+  return {
+    due_date: task.due_date,
+    status: {
+      is_done: task.status?.is_done ?? false,
+    },
+  };
 };
 
 export interface TaskPayload {
@@ -129,6 +156,20 @@ export const taskApi = baseApi.injectEndpoints({
         body,
       }),
       invalidatesTags: ['ProjectTasks'],
+      async onQueryStarted({ projectCode }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          dispatch(
+            applyTaskCreatedStats({
+              projectCode,
+              task: toTaskStatsSnapshot(data.response) ?? {},
+            }),
+          );
+        } catch {
+          // stats stay unchanged when creation fails.
+        }
+      },
     }),
 
     taskUpdate: builder.mutation<TaskResponse, TaskUpdateRequest>({
@@ -141,6 +182,30 @@ export const taskApi = baseApi.injectEndpoints({
         { taskId, ...patch },
         { dispatch, getState, queryFulfilled },
       ) {
+        const cachedTaskListArgs = taskApi.util.selectCachedArgsForQuery(
+          getState(),
+          'tasksByProjectId',
+        );
+
+        const taskFromList = cachedTaskListArgs
+          .map(
+            (args) =>
+              taskApi.endpoints.tasksByProjectId.select(args)(getState()).data
+                ?.tasks,
+          )
+          .flat()
+          .find(
+            (task): task is Task => task !== undefined && task.id === taskId,
+          );
+
+        const taskFromDetail =
+          taskApi.endpoints.taskGetByTaskId.select(taskId)(getState()).data
+            ?.response;
+
+        const previousTaskSnapshot = toTaskStatsSnapshot(
+          taskFromDetail ?? taskFromList,
+        );
+
         const taskDetailPatchResult = dispatch(
           taskApi.util.updateQueryData('taskGetByTaskId', taskId, (draft) => {
             if (patch.title !== undefined) {
@@ -159,11 +224,6 @@ export const taskApi = baseApi.injectEndpoints({
               draft.response.priority.id = patch.task_priority_id;
             }
           }),
-        );
-
-        const cachedTaskListArgs = taskApi.util.selectCachedArgsForQuery(
-          getState(),
-          'tasksByProjectId',
         );
 
         const taskListPatchResults = cachedTaskListArgs.map((args) => {
@@ -225,6 +285,18 @@ export const taskApi = baseApi.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
 
+          const nextTaskSnapshot = toTaskStatsSnapshot(data.response);
+
+          if (nextTaskSnapshot) {
+            dispatch(
+              applyTaskTransitionStats({
+                projectCode: data.response.project.code,
+                previousTask: previousTaskSnapshot,
+                nextTask: nextTaskSnapshot,
+              }),
+            );
+          }
+
           dispatch(
             taskApi.util.updateQueryData('taskGetByTaskId', taskId, (draft) => {
               draft.response = data.response;
@@ -261,6 +333,29 @@ export const taskApi = baseApi.injectEndpoints({
         method: 'DELETE',
       }),
       invalidatesTags: ['ProjectTasks'],
+      async onQueryStarted({ taskId }, { dispatch, getState, queryFulfilled }) {
+        const taskFromDetail =
+          taskApi.endpoints.taskGetByTaskId.select(taskId)(getState()).data
+            ?.response;
+
+        const previousTaskSnapshot = toTaskStatsSnapshot(taskFromDetail);
+        const projectCode = taskFromDetail?.project.code;
+
+        try {
+          await queryFulfilled;
+
+          if (projectCode && previousTaskSnapshot) {
+            dispatch(
+              applyTaskDeletedStats({
+                projectCode,
+                task: previousTaskSnapshot,
+              }),
+            );
+          }
+        } catch {
+          // stats stay unchanged when deletion fails.
+        }
+      },
     }),
 
     taskTypes: builder.query<Array<TaskType>, string>({

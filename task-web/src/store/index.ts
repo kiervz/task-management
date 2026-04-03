@@ -13,6 +13,7 @@ import {
 import { baseApi } from './api/baseApi';
 import userReducer, { clearUser, setUser } from './slices/userSlice';
 import otpReducer from './slices/otpSlice';
+import projectReducer from './slices/projectSlice';
 
 const storageSession = {
   getItem: (key: string) => {
@@ -57,6 +58,7 @@ export const store = configureStore({
     user: userReducer,
     [baseApi.reducerPath]: baseApi.reducer,
     otp: persistedOtpReducer,
+    project: projectReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

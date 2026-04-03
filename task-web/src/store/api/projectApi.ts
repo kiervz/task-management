@@ -4,6 +4,7 @@ import type { Project } from '@/@types/project';
 import type { ProjectFormValues } from '@/pages/projects/schemas/projectSchema';
 import type { User } from '@/@types/user';
 import { baseApi } from './baseApi';
+import { incrementProjectStat } from '../slices/projectSlice';
 
 export type ProjectSortBy =
   | 'created_at'
@@ -204,6 +205,20 @@ export const projectApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
+      async onQueryStarted({ projectCode }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(
+            incrementProjectStat({
+              projectCode,
+              key: 'total_members',
+              amount: 1,
+            }),
+          );
+        } catch {
+          // keep members count unchanged when invite fails.
+        }
+      },
     }),
     confirmProjectInvite: builder.mutation<
       ProjectInviteResponse,
