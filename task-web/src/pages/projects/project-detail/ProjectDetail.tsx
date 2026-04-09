@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
@@ -12,37 +12,58 @@ import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setProject, setProjectStats } from '@/store/slices/projectSlice';
-import Tasks from './tasks/Tasks';
 import TaskFormModal from './tasks/components/TaskFormModal';
-import Settings from './settings/Settings';
+
+const Tasks = lazy(() => import('./tasks/Tasks'));
+const Settings = lazy(() => import('./settings/Settings'));
+const Calendar = lazy(() => import('./calendar/Calendar'));
 
 const ProjectDetail = () => {
-  console.log('ProjectDetail Rendered');
-
   const { code } = useParams<{ code: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const dispatch = useAppDispatch();
   const projectStats = useAppSelector((state) => state.project.stats);
 
-  const currentTab = searchParams.get('tab') ?? TAB_LIST[0].value;
-  const isAddTaskParam = searchParams.get('addTask') === 'true';
+  const currentTab = useMemo(
+    () => searchParams.get('tab') ?? TAB_LIST[0].value,
+    [searchParams],
+  );
+  const isAddTaskParam = useMemo(
+    () => searchParams.get('addTask') === 'true',
+    [searchParams],
+  );
 
   const navigate = useNavigate();
 
-  const handleAddTask = () => {
+  const handleAddTask = useCallback(() => {
     setSearchParams((prev) => {
-      prev.set('addTask', 'true');
-      return prev;
+      const next = new URLSearchParams(prev);
+      next.set('tab', 'tasks');
+      next.set('addTask', 'true');
+      return next;
     });
-  };
+  }, [setSearchParams]);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setSearchParams((prev) => {
-      prev.delete('addTask');
-      return prev;
+      const next = new URLSearchParams(prev);
+      next.delete('addTask');
+      return next;
     });
-  };
+  }, [setSearchParams]);
+
+  const handleTabChange = useCallback(
+    (val: string) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', val);
+        next.delete('addTask');
+        return next;
+      });
+    },
+    [setSearchParams],
+  );
 
   const { data, isError, error, isLoading, isFetching } =
     useProjectGetByCodeQuery(code!);
@@ -57,6 +78,21 @@ const ProjectDetail = () => {
   }, [isError, error, navigate]);
 
   const project = data?.response;
+
+  const projectStatsPayload = useMemo(
+    () => ({
+      total_tasks: project?.total_tasks ?? 0,
+      completed_tasks: project?.completed_tasks ?? 0,
+      overdue_tasks: project?.overdue_tasks ?? 0,
+      total_members: project?.total_members ?? 0,
+    }),
+    [
+      project?.total_tasks,
+      project?.completed_tasks,
+      project?.overdue_tasks,
+      project?.total_members,
+    ],
+  );
 
   useEffect(() => {
     if (!project) {
@@ -73,24 +109,10 @@ const ProjectDetail = () => {
     dispatch(
       setProjectStats({
         projectCode: project.code,
-        stats: {
-          total_tasks: project.total_tasks,
-          completed_tasks: project.completed_tasks,
-          overdue_tasks: project.overdue_tasks,
-          total_members: project.total_members,
-        },
+        stats: projectStatsPayload,
       }),
     );
-  }, [
-    dispatch,
-    project,
-    project?.code,
-    project?.name,
-    project?.total_tasks,
-    project?.completed_tasks,
-    project?.overdue_tasks,
-    project?.total_members,
-  ]);
+  }, [dispatch, project, projectStatsPayload]);
 
   if (isLoading || isFetching || !project) {
     return (
@@ -142,9 +164,7 @@ const ProjectDetail = () => {
 
       <Tabs
         value={currentTab}
-        onValueChange={(val) => {
-          setSearchParams({ tab: val });
-        }}
+        onValueChange={handleTabChange}
         orientation={isMobile ? 'vertical' : 'horizontal'}
         className={isMobile ? 'flex-col' : ''}
       >
@@ -157,22 +177,60 @@ const ProjectDetail = () => {
           ))}
         </TabsList>
 
-        {TAB_LIST.map(({ value }) => (
-          <TabsContent value={value} key={value}>
-            {value === 'tasks' && <Tasks />}
-            {value === 'calendar' && <>Calendar Component</>}
-            {value === 'analytics' && <>Analytics Component</>}
-            {value === 'reports' && <>Reports Component</>}
-            {value === 'settings' && <Settings projectCode={project.code} />}
-          </TabsContent>
-        ))}
+        {TAB_LIST.map(({ value }) => {
+          if (value !== currentTab) {
+            return null;
+          }
+
+          return (
+            <TabsContent value={value} key={value}>
+              {value === 'tasks' && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center py-10">
+                      <Spinner className="size-5" />
+                    </div>
+                  }
+                >
+                  <Tasks />
+                </Suspense>
+              )}
+              {value === 'calendar' && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center py-10">
+                      <Spinner className="size-5" />
+                    </div>
+                  }
+                >
+                  <Calendar />
+                </Suspense>
+              )}
+              {value === 'analytics' && <>Analytics Component</>}
+              {value === 'reports' && <>Reports Component</>}
+              {value === 'settings' && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center py-10">
+                      <Spinner className="size-5" />
+                    </div>
+                  }
+                >
+                  <Settings projectCode={project.code} />
+                </Suspense>
+              )}
+            </TabsContent>
+          );
+        })}
       </Tabs>
 
-      <TaskFormModal
-        open={isAddTaskParam}
-        onOpenChange={handleCloseModal}
-        projectCode={project.code}
-      />
+      {currentTab === 'tasks' && (
+        <TaskFormModal
+          open={isAddTaskParam}
+          onOpenChange={handleCloseModal}
+          projectCode={project.code}
+        />
+      )}
     </div>
   );
 };

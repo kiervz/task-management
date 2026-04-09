@@ -37,6 +37,17 @@ type ProjectUpdateRequest = ProjectFormValues & { id: number | string };
 type ProjectMemberResponse = ApiResponse<
   Paginated<{ id: string; project_id: string; role: string; user: User }>
 >;
+type CalendarOverdueTasksResponse = ApiResponse<{
+  project_code: string;
+  month: number;
+  year: number;
+  total_overdue_tasks: number;
+  days: Array<{
+    id: number;
+    day: string;
+    value: number;
+  }>;
+}>;
 type ConfirmProjectInviteAction = 'accept' | 'reject';
 type ProjectInviteResponse = ApiResponse<{
   id: string;
@@ -58,6 +69,12 @@ export interface ProjectsQueryParams {
   sort_by?: ProjectSortBy;
   sort_dir?: ProjectSortOrder;
   filters?: ProjectFilters;
+}
+
+export interface ProjectCalendarOverdueTasksParams {
+  projectCode: string;
+  month: number;
+  year: number;
 }
 
 export const projectApi = baseApi.injectEndpoints({
@@ -196,6 +213,27 @@ export const projectApi = baseApi.injectEndpoints({
       }),
       transformResponse: (res: ProjectMemberResponse) => res.response.data,
     }),
+    projectCalendarOverdueTasks: builder.query<
+      {
+        project_code: string;
+        month: number;
+        year: number;
+        total_overdue_tasks: number;
+        days: Array<{
+          id: number;
+          day: string;
+          value: number;
+        }>;
+      },
+      ProjectCalendarOverdueTasksParams
+    >({
+      query: ({ projectCode, month, year }) => ({
+        url: `/projects/${projectCode}/calendar/overdue-tasks`,
+        method: 'GET',
+        params: { month, year },
+      }),
+      transformResponse: (res: CalendarOverdueTasksResponse) => res.response,
+    }),
     inviteProjectMember: builder.mutation<
       ProjectInviteResponse,
       InviteProjectMemberRequest
@@ -241,6 +279,7 @@ export const {
   useProjectGetByCodeQuery,
   useProjectDeleteMutation,
   useProjectMembersQuery,
+  useProjectCalendarOverdueTasksQuery,
   useInviteProjectMemberMutation,
   useConfirmProjectInviteMutation,
 } = projectApi;

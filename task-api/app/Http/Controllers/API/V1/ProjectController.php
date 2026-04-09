@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\ConfirmProjectInviteRequest;
+use App\Http\Requests\Project\GetCalendarOverdueTasksRequest;
 use App\Http\Requests\Project\GetProjectsRequest;
 use App\Http\Resources\Project\ProjectMemberResource;
 use App\Http\Requests\Project\StoreProjectRequest;
@@ -110,6 +111,23 @@ class ProjectController extends Controller
         return $this->apiResponse(
             'Project members retrieved successfully.',
             ProjectMemberResource::collection($members)->response()->getData(true)
+        );
+    }
+
+    public function calendarOverdueTasks(GetCalendarOverdueTasksRequest $request, string $projectCode): JsonResponse
+    {
+        $project = $this->projectService->findProject($projectCode);
+
+        $this->authorize('view', $project);
+
+        $month = (int) $request->validated('month');
+        $year = (int) $request->validated('year');
+
+        $summary = $this->projectService->getOverdueTasksSummaryByMonth($project, $month, $year);
+
+        return $this->apiResponse(
+            'Project calendar overdue tasks total retrieved successfully.',
+            $summary
         );
     }
 

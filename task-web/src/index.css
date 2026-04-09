@@ -144,6 +144,9 @@
   --breakpoint-xs: 480px;
 }
 
+table {
+  width: 100%;
+}
 .tiptap {
   outline: none;
 }

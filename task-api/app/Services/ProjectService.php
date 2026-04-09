@@ -130,6 +130,43 @@ class ProjectService
             ->get();
     }
 
+    public function getOverdueTasksTotalByMonth(Project $project, int $month, int $year): int
+    {
+        return $project->tasks()
+            ->whereNotNull('due_date')
+            ->whereYear('due_date', $year)
+            ->whereMonth('due_date', $month)
+            ->whereDate('due_date', '<', now()->startOfDay())
+            ->whereHas('status', fn ($query) => $query->where('is_done', false))
+            ->count();
+    }
+
+    public function getOverdueTasksSummaryByMonth(Project $project, int $month, int $year): array
+    {
+        $dayBuckets = $project->tasks()
+            ->selectRaw('DAY(due_date) as day, COUNT(*) as value')
+            ->whereNotNull('due_date')
+            ->whereYear('due_date', $year)
+            ->whereMonth('due_date', $month)
+            ->whereDate('due_date', '<', now()->startOfDay())
+            ->whereHas('status', fn ($query) => $query->where('is_done', false))
+            ->groupByRaw('DAY(due_date)')
+            ->orderByRaw('DAY(due_date)')
+            ->get();
+
+        $days = $dayBuckets->map(fn ($bucket) => [
+            'day' => (int) $bucket->day,
+            'value' => (int) $bucket->value,
+        ])->all();
+
+        return [
+            'month' => $month,
+            'year' => $year,
+            'total_overdue_tasks' => array_sum(array_column($days, 'value')),
+            'days' => $days,
+        ];
+    }
+
     public function removeMember(Project $project, string $userId): void
     {
         if ($project->user_id === $userId) {

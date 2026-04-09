@@ -49,6 +49,8 @@ Route::prefix('v1')->group(function () {
         Route::post('projects/invites/confirm', [ProjectController::class, 'confirmInvite']);
 
         Route::prefix('projects/{projectCode}')->group(function () {
+            Route::get('calendar/overdue-tasks', [ProjectController::class, 'calendarOverdueTasks']);
+
             Route::get('task-types', [TaskCatalogController::class, 'taskTypes']);
             Route::post('task-types', [TaskCatalogController::class, 'storeTaskType']);
 
