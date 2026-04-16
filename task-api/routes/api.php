@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\V1\AnalyticsController;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\CommentController;
 use App\Http\Controllers\API\V1\OAuthController;
@@ -50,6 +51,7 @@ Route::prefix('v1')->group(function () {
 
         Route::prefix('projects/{projectCode}')->group(function () {
             Route::get('calendar/overdue-tasks', [ProjectController::class, 'calendarOverdueTasks']);
+            Route::get('analytics/tasks', [AnalyticsController::class, 'taskAnalytics']);
 
             Route::get('task-types', [TaskCatalogController::class, 'taskTypes']);
             Route::post('task-types', [TaskCatalogController::class, 'storeTaskType']);

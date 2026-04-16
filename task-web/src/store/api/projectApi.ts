@@ -48,6 +48,20 @@ type CalendarOverdueTasksResponse = ApiResponse<{
     value: number;
   }>;
 }>;
+type TaskAnalyticsBucket = {
+  id: string;
+  code: string;
+  name: string;
+  color: string;
+  count: number;
+};
+type TaskAnalyticsResponse = ApiResponse<{
+  project_code: string;
+  total_tasks: number;
+  by_status: TaskAnalyticsBucket[];
+  by_type: TaskAnalyticsBucket[];
+  by_priority: TaskAnalyticsBucket[];
+}>;
 type ConfirmProjectInviteAction = 'accept' | 'reject';
 type ProjectInviteResponse = ApiResponse<{
   id: string;
@@ -75,6 +89,14 @@ export interface ProjectCalendarOverdueTasksParams {
   projectCode: string;
   month: number;
   year: number;
+}
+
+export interface ProjectTaskAnalytics {
+  project_code: string;
+  total_tasks: number;
+  by_status: TaskAnalyticsBucket[];
+  by_type: TaskAnalyticsBucket[];
+  by_priority: TaskAnalyticsBucket[];
 }
 
 export const projectApi = baseApi.injectEndpoints({
@@ -234,6 +256,16 @@ export const projectApi = baseApi.injectEndpoints({
       }),
       transformResponse: (res: CalendarOverdueTasksResponse) => res.response,
     }),
+    projectTaskAnalytics: builder.query<ProjectTaskAnalytics, string>({
+      query: (projectCode) => ({
+        url: `/projects/${projectCode}/analytics/tasks`,
+        method: 'GET',
+      }),
+      transformResponse: (res: TaskAnalyticsResponse) => res.response,
+      providesTags: (_result, _error, projectCode) => [
+        { type: 'ProjectTasks', id: projectCode },
+      ],
+    }),
     inviteProjectMember: builder.mutation<
       ProjectInviteResponse,
       InviteProjectMemberRequest
@@ -280,6 +312,7 @@ export const {
   useProjectDeleteMutation,
   useProjectMembersQuery,
   useProjectCalendarOverdueTasksQuery,
+  useProjectTaskAnalyticsQuery,
   useInviteProjectMemberMutation,
   useConfirmProjectInviteMutation,
 } = projectApi;

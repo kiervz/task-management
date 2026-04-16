@@ -1,4 +1,12 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
@@ -17,6 +25,7 @@ import TaskFormModal from './tasks/components/TaskFormModal';
 const Tasks = lazy(() => import('./tasks/Tasks'));
 const Settings = lazy(() => import('./settings/Settings'));
 const Calendar = lazy(() => import('./calendar/Calendar'));
+const Analytics = lazy(() => import('./analytics/Analytics'));
 
 const ProjectDetail = () => {
   const { code } = useParams<{ code: string }>();
@@ -29,6 +38,12 @@ const ProjectDetail = () => {
     () => searchParams.get('tab') ?? TAB_LIST[0].value,
     [searchParams],
   );
+  const [optimisticTab, setOptimisticTab] = useState<string | null>(null);
+  const [isTabPending, startTabTransition] = useTransition();
+  const [loadedTabs, setLoadedTabs] = useState<Set<string>>(
+    () => new Set([currentTab]),
+  );
+  const activeTab = isTabPending ? (optimisticTab ?? currentTab) : currentTab;
   const isAddTaskParam = useMemo(
     () => searchParams.get('addTask') === 'true',
     [searchParams],
@@ -36,14 +51,30 @@ const ProjectDetail = () => {
 
   const navigate = useNavigate();
 
-  const handleAddTask = useCallback(() => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('tab', 'tasks');
-      next.set('addTask', 'true');
+  const markTabAsLoaded = useCallback((tab: string) => {
+    setLoadedTabs((prev) => {
+      if (prev.has(tab)) {
+        return prev;
+      }
+
+      const next = new Set(prev);
+      next.add(tab);
       return next;
     });
-  }, [setSearchParams]);
+  }, []);
+
+  const handleAddTask = useCallback(() => {
+    setOptimisticTab('tasks');
+    markTabAsLoaded('tasks');
+    startTabTransition(() => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('tab', 'tasks');
+        next.set('addTask', 'true');
+        return next;
+      });
+    });
+  }, [markTabAsLoaded, setSearchParams, startTabTransition]);
 
   const handleCloseModal = useCallback(() => {
     setSearchParams((prev) => {
@@ -55,14 +86,18 @@ const ProjectDetail = () => {
 
   const handleTabChange = useCallback(
     (val: string) => {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set('tab', val);
-        next.delete('addTask');
-        return next;
+      setOptimisticTab(val);
+      markTabAsLoaded(val);
+      startTabTransition(() => {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('tab', val);
+          next.delete('addTask');
+          return next;
+        });
       });
     },
-    [setSearchParams],
+    [markTabAsLoaded, setSearchParams, startTabTransition],
   );
 
   const { data, isError, error, isLoading, isFetching } =
@@ -163,7 +198,7 @@ const ProjectDetail = () => {
       </div>
 
       <Tabs
-        value={currentTab}
+        value={activeTab}
         onValueChange={handleTabChange}
         orientation={isMobile ? 'vertical' : 'horizontal'}
         className={isMobile ? 'flex-col' : ''}
@@ -178,7 +213,7 @@ const ProjectDetail = () => {
         </TabsList>
 
         {TAB_LIST.map(({ value }) => {
-          if (value !== currentTab) {
+          if (!loadedTabs.has(value) && value !== activeTab) {
             return null;
           }
 
@@ -206,7 +241,17 @@ const ProjectDetail = () => {
                   <Calendar />
                 </Suspense>
               )}
-              {value === 'analytics' && <>Analytics Component</>}
+              {value === 'analytics' && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center py-10">
+                      <Spinner className="size-5" />
+                    </div>
+                  }
+                >
+                  <Analytics />
+                </Suspense>
+              )}
               {value === 'reports' && <>Reports Component</>}
               {value === 'settings' && (
                 <Suspense
@@ -224,7 +269,7 @@ const ProjectDetail = () => {
         })}
       </Tabs>
 
-      {currentTab === 'tasks' && (
+      {activeTab === 'tasks' && (
         <TaskFormModal
           open={isAddTaskParam}
           onOpenChange={handleCloseModal}
