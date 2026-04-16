@@ -16,11 +16,19 @@ export type TaskSortBy =
   | 'due_date'
   | 'created_at';
 export type TaskSortOrder = 'asc' | 'desc';
+export type TaskDueFilter =
+  | 'overdue'
+  | 'today'
+  | 'this_week'
+  | 'this_month'
+  | 'not_due'
+  | 'none';
 
 export interface TaskFilters {
   type?: string[];
   status?: string[];
   priority?: string[];
+  due?: TaskDueFilter;
   start_date_from?: string;
   start_date_to?: string;
 }
@@ -128,6 +136,10 @@ export const taskApi = baseApi.injectEndpoints({
           filters.priority.forEach((value) =>
             params.append('task_priority[]', value),
           );
+        }
+
+        if (filters.due) {
+          params.set('due', filters.due);
         }
 
         return { url: `/projects/${projectCode}/tasks`, method: 'GET', params };

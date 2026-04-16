@@ -85,11 +85,11 @@ export function FacetedFilter<TData, TValue>({
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative w-full sm:w-auto">
       <Button
         variant="outline"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-8 min-w-36 items-center justify-between gap-1.5 border-dashed"
+        className="flex h-8 w-full items-center justify-between gap-1.5 border-dashed sm:min-w-36"
       >
         <TriggerContent
           selectedValues={selectedValues}

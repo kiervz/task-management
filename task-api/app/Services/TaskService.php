@@ -50,6 +50,18 @@ class TaskService
                     ->orWhere('description', 'like', "%{$search}%");
                 })
             )
+            ->when($filters['due'] ?? null, function ($query, $due) {
+                match ($due) {
+                    'overdue' => $query
+                        ->whereDate('due_date', '<', today())
+                        ->whereHas('status', fn ($q) => $q->where('is_done', false)),
+                    'today' => $query->whereDate('due_date', today()),
+                    'this_week' => $query->whereBetween('due_date', [today()->startOfWeek(), today()->endOfWeek()]),
+                    'this_month' => $query->whereBetween('due_date', [today()->startOfMonth(), today()->endOfMonth()]),
+                    'not_due', 'none' => $query->whereDate('due_date', '>=', today()),
+                    default => $query,
+                };
+            })
             ->when($filters['due_from'] ?? null, fn ($q, $value) => $q->whereDate('due_date', '>=', $value))
             ->when($filters['due_to'] ?? null, fn ($q, $value) => $q->whereDate('due_date', '<=', $value))
             ->orderBy($sortBy, $sortDir)

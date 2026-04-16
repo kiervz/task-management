@@ -133,16 +133,16 @@ export default function DataTable<TData, TValue>({
 
   return (
     <div className="rounded-md border">
-      <div className="flex flex-col items-start sm:flex-row sm:items-center gap-4 px-2 py-4">
+      <div className="flex flex-wrap items-start gap-3 px-2 py-4 sm:items-center">
         <Input
           placeholder={searchPlaceholder}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          className="max-w-xs"
+          className="w-full sm:max-w-xs"
         />
-        <div className="flex flex-col sm:flex-row gap-2">{renderedFacets}</div>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">{renderedFacets}</div>
         {showViewOptions && (
-          <div className="ml-auto">
+          <div className="w-full sm:ml-auto sm:w-auto">
             <ViewOptions table={table} columnVisibility={columnVisibility} />
           </div>
         )}

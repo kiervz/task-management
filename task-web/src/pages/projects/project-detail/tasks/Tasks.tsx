@@ -8,6 +8,7 @@ import {
   useTaskTypesQuery,
   useTaskPrioritiesQuery,
   useTaskStatusesQuery,
+  type TaskDueFilter,
   useTasksByProjectIdQuery,
   type TaskFilters,
   type TaskSortBy,
@@ -28,6 +29,7 @@ const Tasks = () => {
   const [typeValues, setTypeValues] = useState<string[]>([]);
   const [statusValues, setStatusValues] = useState<string[]>([]);
   const [priorityValues, setPriorityValues] = useState<string[]>([]);
+  const [dueValue, setDueValue] = useState<TaskDueFilter | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const [inlineSavingKeys, setInlineSavingKeys] = useState<Set<string>>(
@@ -41,8 +43,9 @@ const Tasks = () => {
       ...(priorityValues.length
         ? [{ id: 'priority', value: priorityValues }]
         : []),
+      ...(dueValue ? [{ id: 'due_date', value: [dueValue] }] : []),
     ],
-    [priorityValues, statusValues, typeValues],
+    [dueValue, priorityValues, statusValues, typeValues],
   );
 
   const filters: TaskFilters = useMemo(
@@ -50,8 +53,9 @@ const Tasks = () => {
       type: typeValues.length ? typeValues : undefined,
       status: statusValues.length ? statusValues : undefined,
       priority: priorityValues.length ? priorityValues : undefined,
+      due: dueValue ?? undefined,
     }),
-    [priorityValues, statusValues, typeValues],
+    [dueValue, priorityValues, statusValues, typeValues],
   );
 
   const { data, isFetching, isError, error, refetch } =
@@ -95,6 +99,17 @@ const Tasks = () => {
           value: priority.code,
         })),
       },
+      {
+        columnId: 'due_date',
+        title: 'Due Date',
+        options: [
+          { label: 'Overdue', value: 'overdue' },
+          { label: 'Due Today', value: 'today' },
+          { label: 'Due This Week', value: 'this_week' },
+          { label: 'Due This Month', value: 'this_month' },
+          { label: 'Not Yet Due', value: 'not_due' },
+        ],
+      },
     ],
     [types, statuses, priorities],
   );
@@ -117,10 +132,13 @@ const Tasks = () => {
       (next.find((f) => f.id === 'status')?.value as string[]) ?? [];
     const priority =
       (next.find((f) => f.id === 'priority')?.value as string[]) ?? [];
+    const dueValues =
+      (next.find((f) => f.id === 'due_date')?.value as string[]) ?? [];
 
     setTypeValues(types);
     setStatusValues(status);
     setPriorityValues(priority);
+    setDueValue((dueValues[0] as TaskDueFilter | undefined) ?? null);
     setPageIndex(0);
   }, []);
 
