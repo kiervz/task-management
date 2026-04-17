@@ -2,7 +2,6 @@ import {
   Layers,
   CheckCircle,
   Users,
-  ClipboardCheck,
   Settings,
   Calendar1,
   ChartColumn,
@@ -47,11 +46,6 @@ export const TAB_LIST = [
     value: 'analytics',
     label: 'Analytics',
     icon: ChartColumn,
-  },
-  {
-    value: 'reports',
-    label: 'Reports',
-    icon: ClipboardCheck,
   },
   {
     value: 'settings',

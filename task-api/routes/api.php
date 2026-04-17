@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\V1\AnalyticsController;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\CommentController;
+use App\Http\Controllers\API\V1\DashboardController;
 use App\Http\Controllers\API\V1\OAuthController;
 use App\Http\Controllers\API\V1\ProjectController;
 use App\Http\Controllers\API\V1\TaskCatalogController;
@@ -43,6 +44,10 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('dashboard/kpis', [DashboardController::class, 'kpis']);
+        Route::get('dashboard/my-work', [DashboardController::class, 'myWork']);
+        Route::get('dashboard/projects-overview', [DashboardController::class, 'projectsOverview']);
+
         Route::get('projects/{projectCode}/members', [ProjectController::class, 'members']);
         Route::delete('projects/{projectCode}/members/{userId}', [ProjectController::class, 'removeMember']);
         Route::post('projects/{projectCode}/transfer-ownership', [ProjectController::class, 'transferOwnership']);
