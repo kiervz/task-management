@@ -44,6 +44,9 @@ class TaskService
             ->when($filters['assignee_id'] ?? null, function ($query, $assigneeId) {
                 $query->whereHas('assignees', fn ($q) => $q->where('user_id', $assigneeId));
             })
+            ->when(!empty($filters['assignee_ids'] ?? []), function ($query) use ($filters) {
+                $query->whereHas('assignees', fn ($q) => $q->whereIn('user_id', $filters['assignee_ids']));
+            })
             ->when($filters['search'] ?? null, fn ($q, $search) =>
                 $q->where(function ($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")

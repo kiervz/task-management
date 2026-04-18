@@ -14,6 +14,7 @@ import {
   type TaskSortBy,
   type TaskSortOrder,
 } from '@/store/api/taskApi';
+import { useProjectMembersQuery } from '@/store/api/projectApi';
 import { useAppSelector } from '@/store/hooks';
 import { columns } from './components/columns';
 import TaskFormModal from './components/TaskFormModal';
@@ -30,6 +31,7 @@ const Tasks = () => {
   const [statusValues, setStatusValues] = useState<string[]>([]);
   const [priorityValues, setPriorityValues] = useState<string[]>([]);
   const [dueValue, setDueValue] = useState<TaskDueFilter | null>(null);
+  const [assigneeValues, setAssigneeValues] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
   const [inlineSavingKeys, setInlineSavingKeys] = useState<Set<string>>(
@@ -44,8 +46,11 @@ const Tasks = () => {
         ? [{ id: 'priority', value: priorityValues }]
         : []),
       ...(dueValue ? [{ id: 'due_date', value: [dueValue] }] : []),
+      ...(assigneeValues.length
+        ? [{ id: 'assignees_id', value: assigneeValues }]
+        : []),
     ],
-    [dueValue, priorityValues, statusValues, typeValues],
+    [dueValue, priorityValues, statusValues, typeValues, assigneeValues],
   );
 
   const filters: TaskFilters = useMemo(
@@ -54,8 +59,9 @@ const Tasks = () => {
       status: statusValues.length ? statusValues : undefined,
       priority: priorityValues.length ? priorityValues : undefined,
       due: dueValue ?? undefined,
+      assignee_ids: assigneeValues.length ? assigneeValues : undefined,
     }),
-    [dueValue, priorityValues, statusValues, typeValues],
+    [dueValue, priorityValues, statusValues, typeValues, assigneeValues],
   );
 
   const { data, isFetching, isError, error, refetch } =
@@ -72,6 +78,7 @@ const Tasks = () => {
   const { data: types = [] } = useTaskTypesQuery(code!);
   const { data: statuses = [] } = useTaskStatusesQuery(code!);
   const { data: priorities = [] } = useTaskPrioritiesQuery(code!);
+  const { data: members = [] } = useProjectMembersQuery(code!);
 
   const facetedFilters = useMemo(
     () => [
@@ -110,8 +117,16 @@ const Tasks = () => {
           { label: 'Not Yet Due', value: 'not_due' },
         ],
       },
+      {
+        columnId: 'assignees_id',
+        title: 'Assignee',
+        options: members.map((m) => ({
+          label: m.user.name,
+          value: m.user.id,
+        })),
+      },
     ],
-    [types, statuses, priorities],
+    [types, statuses, priorities, members],
   );
 
   const tasks = data?.tasks ?? [];
@@ -134,11 +149,14 @@ const Tasks = () => {
       (next.find((f) => f.id === 'priority')?.value as string[]) ?? [];
     const dueValues =
       (next.find((f) => f.id === 'due_date')?.value as string[]) ?? [];
+    const assignees =
+      (next.find((f) => f.id === 'assignees_id')?.value as string[]) ?? [];
 
     setTypeValues(types);
     setStatusValues(status);
     setPriorityValues(priority);
     setDueValue((dueValues[0] as TaskDueFilter | undefined) ?? null);
+    setAssigneeValues(assignees);
     setPageIndex(0);
   }, []);
 

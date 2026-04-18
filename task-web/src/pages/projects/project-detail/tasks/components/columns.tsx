@@ -85,7 +85,14 @@ export const columns = ({
           nativeButton={false}
         >
           {task.title}
-          <Badge className="ml-2">{task.type.name}</Badge>
+          <Badge
+            variant="outline"
+            style={
+              task.type.color ? { borderColor: task.type.color } : undefined
+            }
+          >
+            {task.type.name ?? 'Unknown type'}
+          </Badge>
         </Button>
       );
     },

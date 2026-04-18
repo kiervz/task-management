@@ -29,6 +29,8 @@ export interface TaskFilters {
   status?: string[];
   priority?: string[];
   due?: TaskDueFilter;
+  assignee_id?: string;
+  assignee_ids?: string[];
   start_date_from?: string;
   start_date_to?: string;
 }
@@ -140,6 +142,14 @@ export const taskApi = baseApi.injectEndpoints({
 
         if (filters.due) {
           params.set('due', filters.due);
+        }
+
+        if (filters.assignee_id) {
+          params.set('assignee_id', filters.assignee_id);
+        }
+
+        if (filters.assignee_ids?.length) {
+          filters.assignee_ids.forEach((id) => params.append('assignee_ids[]', id));
         }
 
         return { url: `/projects/${projectCode}/tasks`, method: 'GET', params };
