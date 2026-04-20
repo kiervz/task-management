@@ -58,6 +58,7 @@ export default function DataTable<TData, TValue>({
   facetedFilters = [],
   columnFilters = [],
   onColumnFiltersChange,
+  isLoading = false,
   searchPlaceholder = 'Search...',
   showViewOptions = true,
 }: Readonly<DataTableProps<TData, TValue>>) {
@@ -131,6 +132,46 @@ export default function DataTable<TData, TValue>({
     setInputValue(search);
   }, [search]);
 
+  const rows = table.getRowModel().rows;
+
+  let tableBodyContent;
+  if (isLoading) {
+    tableBodyContent = (
+      <TableRow>
+        <TableCell
+          colSpan={columns.length}
+          className="h-30 text-center text-muted-foreground"
+        >
+          Loading...
+        </TableCell>
+      </TableRow>
+    );
+  } else if (rows.length) {
+    tableBodyContent = rows.map((row) => (
+      <TableRow key={row.id}>
+        {row.getVisibleCells().map((cell) => (
+          <TableCell key={cell.id}>
+            {flexRender(
+              cell.column.columnDef.cell,
+              cell.getContext(),
+            )}
+          </TableCell>
+        ))}
+      </TableRow>
+    ));
+  } else {
+    tableBodyContent = (
+      <TableRow>
+        <TableCell
+          colSpan={columns.length}
+          className="h-30 text-center"
+        >
+          No results.
+        </TableCell>
+      </TableRow>
+    );
+  }
+
   return (
     <div className="rounded-md border">
       <div className="flex flex-wrap items-start gap-3 px-2 py-4 sm:items-center">
@@ -166,31 +207,7 @@ export default function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-30 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+          <TableBody>{tableBodyContent}</TableBody>
         </Table>
       </div>
 
