@@ -178,23 +178,48 @@ const Analytics = () => {
     );
   }
 
+  const totalTasks = data?.total_tasks ?? 0;
+  const completedTasks = data?.completed_tasks ?? 0;
+  const completionRate = data?.completion_rate ?? 0;
+
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 items-start">
-      <AnalyticsPieCard
-        title="Tasks by Status"
-        description="A breakdown of tasks by current status"
-        data={data?.by_status ?? []}
-      />
-      <AnalyticsPieCard
-        title="Tasks by Type"
-        description="A breakdown of tasks by type"
-        data={data?.by_type ?? []}
-      />
-      <AnalyticsPieCard
-        title="Tasks by Priority"
-        description="A breakdown of tasks by priority level"
-        data={data?.by_priority ?? []}
-      />
+    <div className="flex flex-col gap-4">
+      <Card>
+        <CardContent className="flex flex-col gap-3 ">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Completion Rate</span>
+            <span className="tabular-nums text-muted-foreground">
+              {completedTasks} / {totalTasks} tasks &mdash; {completionRate}%
+            </span>
+          </div>
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{
+                width: `${Math.max(0, Math.min(100, completionRate))}%`,
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 items-start">
+        <AnalyticsPieCard
+          title="Tasks by Status"
+          description="A breakdown of tasks by current status"
+          data={data?.by_status ?? []}
+        />
+        <AnalyticsPieCard
+          title="Tasks by Type"
+          description="A breakdown of tasks by type"
+          data={data?.by_type ?? []}
+        />
+        <AnalyticsPieCard
+          title="Tasks by Priority"
+          description="A breakdown of tasks by priority level"
+          data={data?.by_priority ?? []}
+        />
+      </div>
     </div>
   );
 };

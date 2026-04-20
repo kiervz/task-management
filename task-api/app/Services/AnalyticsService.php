@@ -13,6 +13,14 @@ class AnalyticsService
             ->groupBy('task_status_id')
             ->pluck('total', 'task_status_id');
 
+        $completedTaskStatusIds = $project->taskStatuses()
+            ->where('is_done', true)
+            ->pluck('id');
+
+        $completedTasks = (int) $taskCountsByStatusId
+            ->only($completedTaskStatusIds)
+            ->sum();
+
         $taskCountsByTypeId = $project->tasks()
             ->selectRaw('task_type_id, COUNT(*) as total')
             ->groupBy('task_type_id')
@@ -65,9 +73,16 @@ class AnalyticsService
             ->values()
             ->all();
 
+        $totalTasks = (int) $project->tasks()->count();
+        $completionRate = $totalTasks > 0
+            ? round(($completedTasks / $totalTasks) * 100, 1)
+            : 0;
+
         return [
             'project_code' => $project->code,
-            'total_tasks' => (int) $project->tasks()->count(),
+            'total_tasks' => $totalTasks,
+            'completed_tasks' => $completedTasks,
+            'completion_rate' => $completionRate,
             'by_status' => $statusBuckets,
             'by_type' => $typeBuckets,
             'by_priority' => $priorityBuckets,

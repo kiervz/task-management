@@ -21,6 +21,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setProject, setProjectStats } from '@/store/slices/projectSlice';
 import TaskFormModal from './tasks/components/TaskFormModal';
+import { cn } from '@/lib/utils';
 
 const Tasks = lazy(() => import('./tasks/Tasks'));
 const Settings = lazy(() => import('./settings/Settings'));
@@ -201,7 +202,7 @@ const ProjectDetail = () => {
         value={activeTab}
         onValueChange={handleTabChange}
         orientation={isMobile ? 'vertical' : 'horizontal'}
-        className={isMobile ? 'flex-col' : ''}
+        className={cn(isMobile ? 'flex-col' : '', 'gap-4')}
       >
         <TabsList className={isMobile ? 'w-full' : ''}>
           {TAB_LIST.map(({ value, label, icon: Icon }) => (
@@ -252,7 +253,6 @@ const ProjectDetail = () => {
                   <Analytics />
                 </Suspense>
               )}
-              {value === 'reports' && <>Reports Component</>}
               {value === 'settings' && (
                 <Suspense
                   fallback={

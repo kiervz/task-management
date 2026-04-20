@@ -58,6 +58,8 @@ type TaskAnalyticsBucket = {
 type TaskAnalyticsResponse = ApiResponse<{
   project_code: string;
   total_tasks: number;
+  completed_tasks: number;
+  completion_rate: number;
   by_status: TaskAnalyticsBucket[];
   by_type: TaskAnalyticsBucket[];
   by_priority: TaskAnalyticsBucket[];
@@ -94,6 +96,8 @@ export interface ProjectCalendarOverdueTasksParams {
 export interface ProjectTaskAnalytics {
   project_code: string;
   total_tasks: number;
+  completed_tasks: number;
+  completion_rate: number;
   by_status: TaskAnalyticsBucket[];
   by_type: TaskAnalyticsBucket[];
   by_priority: TaskAnalyticsBucket[];
