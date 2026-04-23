@@ -3,5 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    abort(500, 'Something went wrong');
+});
+
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok']);
 });
