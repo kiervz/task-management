@@ -1,0 +1,14 @@
+services:
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: taskzenflow_proxy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template
+    environment:
+      - BACKEND_API_IP_1=${BACKEND_API_IP_1}
+      - FRONTEND_IP_1=${FRONTEND_IP_1}
+    env_file:
+      - .env
