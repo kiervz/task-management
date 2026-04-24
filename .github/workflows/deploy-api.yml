@@ -1,0 +1,44 @@
+name: Deploy Taskzenflow API
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'task-api/**'
+
+jobs:
+  deploy:
+    name: Deploy to API Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.API_SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/html/taskzenflow
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            cd task-api
+
+            echo "Rebuilding containers..."
+            docker compose down
+            docker compose up -d --build
+
+            echo "Waiting for app container to be ready..."
+            sleep 5
+
+            echo "Running migrations..."
+            docker exec taskzenflow_app php artisan migrate --force
+
+            echo "Clearing and caching config..."
+            docker exec taskzenflow_app php artisan optimize:clear
+            docker exec taskzenflow_app php artisan optimize
+
+            echo "Taskzenflow API deployed successfully!"

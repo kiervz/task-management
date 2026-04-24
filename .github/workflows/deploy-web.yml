@@ -1,0 +1,34 @@
+name: Deploy Taskzenflow Frontend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'task-web/**'
+
+jobs:
+  deploy:
+    name: Deploy to Web Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.WEB_SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/html/taskzenflow
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            cd task-web
+
+            echo "Rebuilding containers..."
+            docker compose down
+            docker compose up -d --build
+
+            echo "Taskzenflow frontend deployed successfully!"
