@@ -6,9 +6,29 @@ upstream frontend_servers {
     server ${FRONTEND_IP_1}:80;
 }
 
+# Default block - rejects direct LB access and non-Cloudflare traffic
+server {
+    listen 80 default_server;
+    server_name _;
+
+    location /health {
+        access_log off;
+        return 200 'ok';
+        add_header Content-Type text/plain;
+    }
+
+    location / {
+        return 444;
+    }
+}
+
 server {
     listen 80;
     server_name taskzenflow-api.kierveymaghanoy.com;
+
+    if ($http_cf_connecting_ip = "") {
+        return 444;
+    }
 
     location /health {
         access_log off;
@@ -28,6 +48,10 @@ server {
 server {
     listen 80;
     server_name taskzenflow.kierveymaghanoy.com;
+
+    if ($http_cf_connecting_ip = "") {
+        return 444;
+    }
 
     location /health {
         access_log off;
