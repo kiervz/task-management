@@ -1,0 +1,28 @@
+# Generate a safe alphanumeric password: openssl rand -hex 32
+requirepass YOUR_STRONG_PASSWORD_HERE
+
+# Persistence
+appendonly yes
+appendfsync everysec
+appendfilename "appendonly.aof"
+dir /data
+
+# Snapshot (additional backup)
+save 900 1
+save 300 10
+save 60 10000
+
+# Memory
+maxmemory 512mb
+maxmemory-policy allkeys-lru
+
+# Security
+protected-mode yes
+bind 0.0.0.0
+
+# Performance
+tcp-keepalive 300
+timeout 0
+
+# Logging
+loglevel notice
