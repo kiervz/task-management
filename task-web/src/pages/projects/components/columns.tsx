@@ -40,8 +40,6 @@ const PRIORITY_OPTIONS: InlineSelectOption[] = [
 type ColumnsArgs = {
   sortBy: ProjectSortBy;
   sortOrder: SortOrder;
-  inlineSavingKeys: Set<string>;
-  onInlineSavingChange: (key: string, isSaving: boolean) => void;
   onSortChange: (
     sortBy: ProjectSortBy | null,
     sortOrder: SortOrder | null,
@@ -54,8 +52,6 @@ type ColumnsArgs = {
 export const columns = ({
   sortBy,
   sortOrder,
-  inlineSavingKeys,
-  onInlineSavingChange,
   onSortChange,
   onView,
   onEdit,
@@ -96,7 +92,6 @@ export const columns = ({
     cell: ({ row }) => {
       const project = row.original;
       const canManage = project.permissions?.can_manage ?? false;
-      const savingKey = `project-status-${project.id}`;
 
       if (!canManage) {
         return (
@@ -115,9 +110,6 @@ export const columns = ({
           options={STATUS_OPTIONS}
           placeholder="Select status"
           savingLabel="Status"
-          savingKey={savingKey}
-          isSaving={inlineSavingKeys.has(savingKey)}
-          onSavingChange={onInlineSavingChange}
         />
       );
     },
@@ -128,7 +120,6 @@ export const columns = ({
     cell: ({ row }) => {
       const project = row.original;
       const canManage = project.permissions?.can_manage ?? false;
-      const savingKey = `project-priority-${project.id}`;
 
       if (!canManage) {
         return (
@@ -147,9 +138,6 @@ export const columns = ({
           options={PRIORITY_OPTIONS}
           placeholder="Select priority"
           savingLabel="Priority"
-          savingKey={savingKey}
-          isSaving={inlineSavingKeys.has(savingKey)}
-          onSavingChange={onInlineSavingChange}
         />
       );
     },

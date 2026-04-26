@@ -47,6 +47,8 @@ export default function CatalogCombobox({
     <Combobox
       id={id}
       value={value}
+      inputValue=""
+      onInputValueChange={() => {}}
       disabled={disabled}
       onValueChange={(val) => onValueChange(val ?? '')}
       items={items.map((i) => i.id)}

@@ -24,9 +24,6 @@ type ProjectInlineSelectProps = {
   options: InlineSelectOption[];
   placeholder: string;
   savingLabel: string;
-  savingKey: string;
-  isSaving: boolean;
-  onSavingChange: (key: string, isSaving: boolean) => void;
 };
 
 export default function ProjectInlineSelect({
@@ -36,16 +33,11 @@ export default function ProjectInlineSelect({
   options,
   placeholder,
   savingLabel,
-  savingKey,
-  isSaving,
-  onSavingChange,
 }: Readonly<ProjectInlineSelectProps>) {
   const [projectUpdate, { isLoading }] = useProjectUpdateMutation();
 
   const handleValueChange = async (nextValue: string | null) => {
-    if (!nextValue || nextValue === value || isSaving || isLoading) return;
-
-    onSavingChange(savingKey, true);
+    if (!nextValue || nextValue === value || isLoading) return;
 
     try {
       await projectUpdate({
@@ -55,12 +47,10 @@ export default function ProjectInlineSelect({
       toast.success(`${savingLabel} updated`);
     } catch (error) {
       handleApiError(error);
-    } finally {
-      onSavingChange(savingKey, false);
     }
   };
 
-  const isBusy = isLoading || isSaving;
+  const isBusy = isLoading;
   const currentLabel = options.find((o) => o.value === value)?.label ?? value;
 
   return (

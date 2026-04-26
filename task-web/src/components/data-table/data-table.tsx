@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   type ColumnDef,
   type VisibilityState,
@@ -43,6 +43,7 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   searchPlaceholder?: string;
   showViewOptions?: boolean;
+  initialColumnVisibility?: VisibilityState;
 }
 
 export default function DataTable<TData, TValue>({
@@ -61,15 +62,14 @@ export default function DataTable<TData, TValue>({
   isLoading = false,
   searchPlaceholder = 'Search...',
   showViewOptions = true,
+  initialColumnVisibility = {},
 }: Readonly<DataTableProps<TData, TValue>>) {
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    label: false,
-    type: false,
-  });
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    initialColumnVisibility,
+  );
 
   const [inputValue, setInputValue] = useState<string>(search);
   const debouncedInput = useDebouncedValue(inputValue);
-  const isFirstRender = useRef(true);
 
   const table = useReactTable({
     data,
@@ -118,10 +118,6 @@ export default function DataTable<TData, TValue>({
     .filter(Boolean);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
     if (debouncedInput === search) {
       return;
     }
@@ -151,10 +147,7 @@ export default function DataTable<TData, TValue>({
       <TableRow key={row.id}>
         {row.getVisibleCells().map((cell) => (
           <TableCell key={cell.id}>
-            {flexRender(
-              cell.column.columnDef.cell,
-              cell.getContext(),
-            )}
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}
       </TableRow>
@@ -162,10 +155,7 @@ export default function DataTable<TData, TValue>({
   } else {
     tableBodyContent = (
       <TableRow>
-        <TableCell
-          colSpan={columns.length}
-          className="h-30 text-center"
-        >
+        <TableCell colSpan={columns.length} className="h-30 text-center">
           No results.
         </TableCell>
       </TableRow>
@@ -181,7 +171,9 @@ export default function DataTable<TData, TValue>({
           onChange={(e) => setInputValue(e.target.value)}
           className="w-full sm:max-w-xs"
         />
-        <div className="flex w-full flex-wrap gap-2 sm:w-auto">{renderedFacets}</div>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          {renderedFacets}
+        </div>
         {showViewOptions && (
           <div className="w-full sm:ml-auto sm:w-auto">
             <ViewOptions table={table} columnVisibility={columnVisibility} />

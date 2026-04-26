@@ -34,9 +34,6 @@ const Tasks = () => {
   const [assigneeValues, setAssigneeValues] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState('');
   const [editTaskId, setEditTaskId] = useState<string | null>(null);
-  const [inlineSavingKeys, setInlineSavingKeys] = useState<Set<string>>(
-    () => new Set(),
-  );
 
   const columnFilters: ColumnFiltersState = useMemo(
     () => [
@@ -179,32 +176,33 @@ const Tasks = () => {
     setEditTaskId(taskId);
   }, []);
 
-  const handleInlineSavingChange = useCallback(
-    (key: string, isSaving: boolean) => {
-      setInlineSavingKeys((prev) => {
-        const hasKey = prev.has(key);
-
-        if (isSaving === hasKey) {
-          return prev;
-        }
-
-        const next = new Set(prev);
-
-        if (isSaving) {
-          next.add(key);
-        } else {
-          next.delete(key);
-        }
-
-        return next;
-      });
-    },
-    [],
-  );
-
   const handleCloseEdit = useCallback(() => {
     setEditTaskId(null);
   }, []);
+
+  const taskColumns = useMemo(
+    () =>
+      columns({
+        projectCode: code!,
+        currentUserId,
+        statuses,
+        priorities,
+        sortBy,
+        sortOrder,
+        onSortChange,
+        onEdit: handleOpenEdit,
+      }),
+    [
+      code,
+      currentUserId,
+      statuses,
+      priorities,
+      sortBy,
+      sortOrder,
+      onSortChange,
+      handleOpenEdit,
+    ],
+  );
 
   if (isError) {
     return (
@@ -220,18 +218,7 @@ const Tasks = () => {
   return (
     <>
       <DataTable
-        columns={columns({
-          projectCode: code!,
-          currentUserId,
-          statuses,
-          priorities,
-          sortBy,
-          sortOrder,
-          onSortChange,
-          onEdit: handleOpenEdit,
-          inlineSavingKeys,
-          onInlineSavingChange: handleInlineSavingChange,
-        })}
+        columns={taskColumns}
         data={tasks}
         pageIndex={pageIndex}
         pageSize={pageSize}
@@ -244,6 +231,7 @@ const Tasks = () => {
         onColumnFiltersChange={handleColumnFiltersChange}
         facetedFilters={facetedFilters}
         isLoading={isFetching}
+        initialColumnVisibility={{ type: false }}
       />
 
       <TaskFormModal

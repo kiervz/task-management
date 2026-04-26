@@ -13,9 +13,6 @@ type TaskInlineSelectProps = {
   field: 'task_status_id' | 'task_priority_id';
   placeholder: string;
   savingLabel: string;
-  savingKey: string;
-  isSaving: boolean;
-  onSavingChange: (key: string, isSaving: boolean) => void;
 };
 
 export default function TaskInlineSelect({
@@ -26,30 +23,23 @@ export default function TaskInlineSelect({
   field,
   placeholder,
   savingLabel,
-  savingKey,
-  isSaving,
-  onSavingChange,
 }: Readonly<TaskInlineSelectProps>) {
   const [taskUpdate, { isLoading }] = useTaskUpdateMutation();
 
   const handleValueChange = async (nextId: string) => {
-    if (!nextId || nextId === valueId || isSaving || isLoading) {
+    if (!nextId || nextId === valueId || isLoading) {
       return;
     }
-
-    onSavingChange(savingKey, true);
 
     try {
       await taskUpdate({ taskId: task.id, [field]: nextId }).unwrap();
       toast.success(`${savingLabel} updated`);
     } catch (error) {
       handleApiError(error);
-    } finally {
-      onSavingChange(savingKey, false);
     }
   };
 
-  const isBusy = isLoading || isSaving;
+  const isBusy = isLoading;
 
   return (
     <div className="min-w-36">

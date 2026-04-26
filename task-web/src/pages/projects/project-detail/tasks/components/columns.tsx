@@ -42,8 +42,6 @@ type ColumnsArgs = {
   priorities: TaskMeta[];
   sortBy: TaskSortBy;
   sortOrder: SortOrder;
-  inlineSavingKeys: Set<string>;
-  onInlineSavingChange: (key: string, isSaving: boolean) => void;
   onSortChange: (
     sortBy: TaskSortBy | null,
     sortOrder: SortOrder | null,
@@ -58,8 +56,6 @@ export const columns = ({
   priorities,
   sortBy,
   sortOrder,
-  inlineSavingKeys,
-  onInlineSavingChange,
   onSortChange,
   onEdit,
 }: ColumnsArgs): ColumnDef<Task>[] => [
@@ -109,7 +105,6 @@ export const columns = ({
       const task = row.original;
       const canEditTask =
         task.permissions?.can_manage ?? currentUserId === task.creator.id;
-      const savingKey = `task-status-${task.id}`;
 
       if (!canEditTask) {
         return <div className="px-3">{task.status.name}</div>;
@@ -124,9 +119,6 @@ export const columns = ({
           field="task_status_id"
           placeholder="Select status"
           savingLabel="Status"
-          savingKey={savingKey}
-          isSaving={inlineSavingKeys.has(savingKey)}
-          onSavingChange={onInlineSavingChange}
         />
       );
     },
@@ -138,7 +130,6 @@ export const columns = ({
       const task = row.original;
       const canEditTask =
         task.permissions?.can_manage ?? currentUserId === task.creator.id;
-      const savingKey = `task-priority-${task.id}`;
 
       if (!canEditTask) {
         return <div className="px-3">{task.priority.name}</div>;
@@ -153,9 +144,6 @@ export const columns = ({
           field="task_priority_id"
           placeholder="Select priority"
           savingLabel="Priority"
-          savingKey={savingKey}
-          isSaving={inlineSavingKeys.has(savingKey)}
-          onSavingChange={onInlineSavingChange}
         />
       );
     },

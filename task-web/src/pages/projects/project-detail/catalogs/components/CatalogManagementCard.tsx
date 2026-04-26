@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
@@ -257,14 +257,17 @@ export default function CatalogManagementCard({
   return (
     <>
       <Card>
-        <CardHeader className="flex justify-between items-center">
+        <CardHeader className="flex flex-col 2xs:flex-row 2xs:justify-between 2xs:items-center">
           <div>
             <CardTitle>{title}</CardTitle>
             <CardDescription>{cardDescription}</CardDescription>
           </div>
 
-          <Button type="button" onClick={openCreate}>
-            <Plus className="size-4" />
+          <Button
+            type="button"
+            onClick={openCreate}
+            disabled={!canManage || isLoadingItems}
+          >
             Add {subtitle}
           </Button>
         </CardHeader>
