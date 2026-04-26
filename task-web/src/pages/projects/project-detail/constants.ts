@@ -6,6 +6,7 @@ import {
   Calendar1,
   ChartColumn,
   CalendarX,
+  SwatchBook,
 } from 'lucide-react';
 
 export const STAT_CARDS = [
@@ -46,6 +47,11 @@ export const TAB_LIST = [
     value: 'analytics',
     label: 'Analytics',
     icon: ChartColumn,
+  },
+  {
+    value: 'catalogs',
+    label: 'Catalogs',
+    icon: SwatchBook,
   },
   {
     value: 'settings',

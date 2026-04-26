@@ -44,6 +44,11 @@ class ProjectPolicy
         return $this->isProjectMember($user, $project);
     }
 
+    public function manageTaskTypes(User $user, Project $project): bool
+    {
+        return $this->isProjectAdmin($user, $project);
+    }
+
     public function manageTask(User $user, Project $project, Task $task): bool
     {
         if ($task->project_id !== $project->id) {

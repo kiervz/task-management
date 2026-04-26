@@ -5,15 +5,15 @@ import type { ColumnFiltersState } from '@tanstack/react-table';
 import DataTable from '@/components/data-table/data-table';
 import FetchErrorAlert from '@/components/errors/FetchErrorAlert';
 import {
-  useTaskTypesQuery,
-  useTaskPrioritiesQuery,
-  useTaskStatusesQuery,
   type TaskDueFilter,
   useTasksByProjectIdQuery,
   type TaskFilters,
   type TaskSortBy,
   type TaskSortOrder,
 } from '@/store/api/taskApi';
+import { useTaskTypesQuery } from '@/store/api/taskTypeApi';
+import { useTaskStatusesQuery } from '@/store/api/taskStatusApi';
+import { useTaskPrioritiesQuery } from '@/store/api/taskPriorityApi';
 import { useProjectMembersQuery } from '@/store/api/projectApi';
 import { useAppSelector } from '@/store/hooks';
 import { columns } from './components/columns';

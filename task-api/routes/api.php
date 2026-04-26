@@ -6,7 +6,9 @@ use App\Http\Controllers\API\V1\CommentController;
 use App\Http\Controllers\API\V1\DashboardController;
 use App\Http\Controllers\API\V1\OAuthController;
 use App\Http\Controllers\API\V1\ProjectController;
-use App\Http\Controllers\API\V1\TaskCatalogController;
+use App\Http\Controllers\API\V1\TaskPriorityController;
+use App\Http\Controllers\API\V1\TaskStatusController;
+use App\Http\Controllers\API\V1\TaskTypeController;
 use App\Http\Controllers\API\V1\TaskController;
 use Illuminate\Support\Facades\Route;
 
@@ -58,27 +60,27 @@ Route::prefix('v1')->group(function () {
             Route::get('calendar/overdue-tasks', [ProjectController::class, 'calendarOverdueTasks']);
             Route::get('analytics/tasks', [AnalyticsController::class, 'taskAnalytics']);
 
-            Route::get('task-types', [TaskCatalogController::class, 'taskTypes']);
-            Route::post('task-types', [TaskCatalogController::class, 'storeTaskType']);
+            Route::get('task-types', [TaskTypeController::class, 'index']);
+            Route::post('task-types', [TaskTypeController::class, 'store']);
 
-            Route::get('task-statuses', [TaskCatalogController::class, 'taskStatuses']);
-            Route::post('task-statuses', [TaskCatalogController::class, 'storeTaskStatus']);
+            Route::get('task-statuses', [TaskStatusController::class, 'index']);
+            Route::post('task-statuses', [TaskStatusController::class, 'store']);
 
-            Route::get('task-priorities', [TaskCatalogController::class, 'taskPriorities']);
-            Route::post('task-priorities', [TaskCatalogController::class, 'storeTaskPriority']);
+            Route::get('task-priorities', [TaskPriorityController::class, 'index']);
+            Route::post('task-priorities', [TaskPriorityController::class, 'store']);
 
             Route::get('tasks', [TaskController::class, 'index']);
             Route::post('tasks', [TaskController::class, 'store']);
         });
 
-        Route::put('task-types/{taskTypeId}', [TaskCatalogController::class, 'updateTaskType']);
-        Route::delete('task-types/{taskTypeId}', [TaskCatalogController::class, 'destroyTaskType']);
+        Route::put('task-types/{taskTypeId}', [TaskTypeController::class, 'update']);
+        Route::delete('task-types/{taskTypeId}', [TaskTypeController::class, 'destroy']);
 
-        Route::put('task-statuses/{taskStatusId}', [TaskCatalogController::class, 'updateTaskStatus']);
-        Route::delete('task-statuses/{taskStatusId}', [TaskCatalogController::class, 'destroyTaskStatus']);
+        Route::put('task-statuses/{taskStatusId}', [TaskStatusController::class, 'update']);
+        Route::delete('task-statuses/{taskStatusId}', [TaskStatusController::class, 'destroy']);
 
-        Route::put('task-priorities/{taskPriorityId}', [TaskCatalogController::class, 'updateTaskPriority']);
-        Route::delete('task-priorities/{taskPriorityId}', [TaskCatalogController::class, 'destroyTaskPriority']);
+        Route::put('task-priorities/{taskPriorityId}', [TaskPriorityController::class, 'update']);
+        Route::delete('task-priorities/{taskPriorityId}', [TaskPriorityController::class, 'destroy']);
 
         Route::put('tasks/{taskId}', [TaskController::class, 'update']);
         Route::delete('tasks/{taskId}', [TaskController::class, 'destroy']);

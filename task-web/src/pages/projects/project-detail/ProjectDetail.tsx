@@ -27,6 +27,7 @@ const Tasks = lazy(() => import('./tasks/Tasks'));
 const Settings = lazy(() => import('./settings/Settings'));
 const Calendar = lazy(() => import('./calendar/Calendar'));
 const Analytics = lazy(() => import('./analytics/Analytics'));
+const Catalogs = lazy(() => import('./catalogs/Catalogs'));
 
 const ProjectDetail = () => {
   const { code } = useParams<{ code: string }>();
@@ -251,6 +252,17 @@ const ProjectDetail = () => {
                   }
                 >
                   <Analytics />
+                </Suspense>
+              )}
+              {value === 'catalogs' && (
+                <Suspense
+                  fallback={
+                    <div className="flex items-center justify-center py-10">
+                      <Spinner className="size-5" />
+                    </div>
+                  }
+                >
+                  <Catalogs projectCode={project.code} />
                 </Suspense>
               )}
               {value === 'settings' && (

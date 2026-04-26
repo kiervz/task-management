@@ -1,7 +1,9 @@
 import type { ApiResponse } from '@/@types/apiResponse';
 import type { Paginated, PaginationMeta } from '@/@types/paginated';
-import type { Task, TaskType, TaskStatus, TaskPriority } from '@/@types/task';
+import type { Task } from '@/@types/task';
 import { baseApi } from './baseApi';
+import { taskPriorityApi } from './taskPriorityApi';
+import { taskStatusApi } from './taskStatusApi';
 import {
   applyTaskCreatedStats,
   applyTaskDeletedStats,
@@ -37,20 +39,6 @@ export interface TaskFilters {
 
 type TaskPaginatedResponse = ApiResponse<Paginated<Task>>;
 type TaskResponse = ApiResponse<Task>;
-type CatalogPayload<T> = { data: T[] } | T[];
-type TaskCatalogResponse = ApiResponse<CatalogPayload<TaskType>>;
-type StatusCatalogResponse = ApiResponse<CatalogPayload<TaskStatus>>;
-type PriorityCatalogResponse = ApiResponse<CatalogPayload<TaskPriority>>;
-
-const extractCatalogItems = <T>(
-  payload: CatalogPayload<T> | null | undefined,
-): T[] => {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-
-  return payload?.data ?? [];
-};
 
 type TaskStatsSnapshot = {
   due_date?: string | null;
@@ -149,7 +137,9 @@ export const taskApi = baseApi.injectEndpoints({
         }
 
         if (filters.assignee_ids?.length) {
-          filters.assignee_ids.forEach((id) => params.append('assignee_ids[]', id));
+          filters.assignee_ids.forEach((id) =>
+            params.append('assignee_ids[]', id),
+          );
         }
 
         return { url: `/projects/${projectCode}/tasks`, method: 'GET', params };
@@ -250,10 +240,11 @@ export const taskApi = baseApi.injectEndpoints({
 
         const taskListPatchResults = cachedTaskListArgs.map((args) => {
           const statuses =
-            taskApi.endpoints.taskStatuses.select(args.projectCode)(getState())
-              .data ?? [];
+            taskStatusApi.endpoints.taskStatuses.select(args.projectCode)(
+              getState(),
+            ).data ?? [];
           const priorities =
-            taskApi.endpoints.taskPriorities.select(args.projectCode)(
+            taskPriorityApi.endpoints.taskPriorities.select(args.projectCode)(
               getState(),
             ).data ?? [];
 
@@ -379,33 +370,6 @@ export const taskApi = baseApi.injectEndpoints({
         }
       },
     }),
-
-    taskTypes: builder.query<Array<TaskType>, string>({
-      query: (projectCode) => ({
-        url: `/projects/${projectCode}/task-types`,
-        method: 'GET',
-      }),
-      transformResponse: (res: TaskCatalogResponse) =>
-        extractCatalogItems(res.response),
-    }),
-
-    taskStatuses: builder.query<Array<TaskStatus>, string>({
-      query: (projectCode) => ({
-        url: `/projects/${projectCode}/task-statuses`,
-        method: 'GET',
-      }),
-      transformResponse: (res: StatusCatalogResponse) =>
-        extractCatalogItems(res.response),
-    }),
-
-    taskPriorities: builder.query<Array<TaskPriority>, string>({
-      query: (projectCode) => ({
-        url: `/projects/${projectCode}/task-priorities`,
-        method: 'GET',
-      }),
-      transformResponse: (res: PriorityCatalogResponse) =>
-        extractCatalogItems(res.response),
-    }),
   }),
 });
 
@@ -415,7 +379,4 @@ export const {
   useTaskAddMutation,
   useTaskUpdateMutation,
   useTaskDeleteMutation,
-  useTaskTypesQuery,
-  useTaskStatusesQuery,
-  useTaskPrioritiesQuery,
 } = taskApi;

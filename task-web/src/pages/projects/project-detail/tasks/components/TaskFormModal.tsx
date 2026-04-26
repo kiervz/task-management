@@ -20,10 +20,10 @@ import {
   useTaskAddMutation,
   useTaskGetByTaskIdQuery,
   useTaskUpdateMutation,
-  useTaskTypesQuery,
-  useTaskStatusesQuery,
-  useTaskPrioritiesQuery,
 } from '@/store/api/taskApi';
+import { useTaskTypesQuery } from '@/store/api/taskTypeApi';
+import { useTaskStatusesQuery } from '@/store/api/taskStatusApi';
+import { useTaskPrioritiesQuery } from '@/store/api/taskPriorityApi';
 import { useProjectMembersQuery } from '@/store/api/projectApi';
 import {
   Combobox,
@@ -94,14 +94,19 @@ export default function TaskFormModal({
     const typeIds = types?.map((t) => t.id) ?? [];
     const statusIds = statuses?.map((s) => s.id) ?? [];
     const priorityIds = priorities?.map((p) => p.id) ?? [];
+    const defaultTypeId = types?.find((type) => type.is_default)?.id;
+    const defaultStatusId = statuses?.find((status) => status.is_default)?.id;
+    const defaultPriorityId = priorities?.find(
+      (priority) => priority.is_default,
+    )?.id;
 
     return {
       schema: createTaskSchema(typeIds, statusIds, priorityIds),
       defaultValues: {
         ...DEFAULT_VALUES,
-        type: typeIds[0] ?? '',
-        status: statusIds[0] ?? '',
-        priority: priorityIds[0] ?? '',
+        type: defaultTypeId ?? typeIds[0] ?? '',
+        status: defaultStatusId ?? statusIds[0] ?? '',
+        priority: defaultPriorityId ?? priorityIds[0] ?? '',
       } as TaskFormValues,
     };
   }, [types, statuses, priorities]);

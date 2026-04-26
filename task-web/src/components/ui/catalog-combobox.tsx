@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import {
   Combobox,
   ComboboxTrigger,
@@ -33,6 +35,14 @@ export default function CatalogCombobox({
   onValueChange,
   className,
 }: Readonly<CatalogComboboxProps>) {
+  const defaultItem = items.find((item) => item.is_default);
+
+  useEffect(() => {
+    if (!value && defaultItem) {
+      onValueChange(defaultItem.id);
+    }
+  }, [defaultItem, onValueChange, value]);
+
   return (
     <Combobox
       id={id}
@@ -69,7 +79,9 @@ export default function CatalogCombobox({
             const found = items.find((i) => i.id === itemId);
             return (
               <ComboboxItem key={itemId} value={itemId}>
-                {found?.name ?? itemId}
+                <span className="flex items-center gap-1.5">
+                  {found?.name ?? itemId}
+                </span>
               </ComboboxItem>
             );
           }}
