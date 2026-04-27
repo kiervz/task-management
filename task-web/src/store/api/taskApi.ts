@@ -333,6 +333,14 @@ export const taskApi = baseApi.injectEndpoints({
               ),
             );
           });
+
+          const projectCode = data.response.project.code;
+          dispatch(
+            taskApi.util.invalidateTags([
+              { type: 'ProjectAnalytics', id: projectCode },
+              { type: 'ProjectCalendar', id: projectCode },
+            ]),
+          );
         } catch {
           taskDetailPatchResult.undo();
           taskListPatchResults.forEach((result) => result.undo());

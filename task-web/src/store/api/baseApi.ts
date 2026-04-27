@@ -105,6 +105,8 @@ export const baseApi = createApi({
     'TaskTypes',
     'TaskStatuses',
     'TaskPriorities',
+    'ProjectAnalytics',
+    'ProjectCalendar',
   ],
   endpoints: () => ({}),
 });

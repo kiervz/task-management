@@ -259,6 +259,9 @@ export const projectApi = baseApi.injectEndpoints({
         params: { month, year },
       }),
       transformResponse: (res: CalendarOverdueTasksResponse) => res.response,
+      providesTags: (_result, _error, { projectCode }) => [
+        { type: 'ProjectCalendar', id: projectCode },
+      ],
     }),
     projectTaskAnalytics: builder.query<ProjectTaskAnalytics, string>({
       query: (projectCode) => ({
@@ -268,6 +271,7 @@ export const projectApi = baseApi.injectEndpoints({
       transformResponse: (res: TaskAnalyticsResponse) => res.response,
       providesTags: (_result, _error, projectCode) => [
         { type: 'ProjectTasks', id: projectCode },
+        { type: 'ProjectAnalytics', id: projectCode },
       ],
     }),
     inviteProjectMember: builder.mutation<
